@@ -1,0 +1,19 @@
+<?php
+
+namespace Modules\{Module}\Providers;
+
+use Xditn\Providers\XditnModuleServiceProvider;
+
+class {Module}ServiceProvider extends XditnModuleServiceProvider
+{
+    /**
+     * route path
+     *
+     * @return string
+     */
+    public function moduleName(): string
+    {
+        // TODO: Implement path() method.
+        return '{module}';
+    }
+}

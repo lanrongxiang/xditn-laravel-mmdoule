@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "name": "xditn/larave-mmodule",
+  "description": "laravel多模块启动脚本",
+  "type": "library",
+  "require": {
+    "php": "^8.2",
+    "ext-pdo": "*",
+    "ext-zip": "*",
+    "laravel/sanctum": "4.x-dev"
+  },
+  "require-dev": {
+    "laravel/framework": "^11.0",
+    "laravel/pint": "dev-main"
+  },
+  "license": "MIT",
+  "autoload": {
+    "files": [
+      "src/Support/helpers.php"
+    ],
+    "psr-4": {
+      "Xditn\\": "src/",
+      "Modules\\": "src/Base/modules"
+    }
+  },
+  "authors": [
+    {
+      "name": "lan",
+      "email": "532006864@gmail.com"
+    }
+  ],
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Xditn\\Providers\\XditnServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "dev",
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://repo.huaweicloud.com/repository/php/"
+    }
+  }
+}
