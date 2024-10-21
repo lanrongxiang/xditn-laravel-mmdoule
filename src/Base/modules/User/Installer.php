@@ -27,8 +27,4 @@ class Installer extends ModuleInstaller
         //
     }
 
-    public function install(): void
-    {
-        $this->moduleRepository->create($this->info());
-    }
 }
