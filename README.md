@@ -7,7 +7,7 @@ laravel多模块管理脚本
 ## 简介
 
 开发模块管理脚本，可以快速创建、删除、修改模块，同时支持模块间数据关联。
-复刻于 [catch-admin/core](https://github.com/catch-admin/core)
+
 
 ### 安装命令
 
@@ -25,11 +25,9 @@ composer require xditn/larave-mmodule
 - PHP >= 8.2
 - Composer
 - Laravel>= 11
-- 其他依赖项...
 
 
-
-提交规范:
+## 提交规范:
 
 - feat 新功能 feature
 - fix 修复 bug
@@ -42,3 +40,7 @@ composer require xditn/larave-mmodule
 - revert 回退
 - build 打包
 - close 关闭 issue
+
+
+## 🙏 感谢
+本仓库大量参考了 [catch-admin/core](https://github.com/catch-admin/core) 的实现
