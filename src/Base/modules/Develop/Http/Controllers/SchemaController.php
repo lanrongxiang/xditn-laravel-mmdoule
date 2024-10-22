@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\Develop\Http\Controllers;
+namespace Xditn\Modules\Develop\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Modules\Develop\Models\Schemas;
+use Xditn\Modules\Develop\Models\Schemas;
 use Xditn\Base\XditnController;
 
 /**

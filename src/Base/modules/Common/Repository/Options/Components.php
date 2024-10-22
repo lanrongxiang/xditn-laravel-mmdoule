@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Common\Repository\Options;
+namespace Xditn\Modules\Common\Repository\Options;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;

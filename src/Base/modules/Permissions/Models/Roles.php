@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Permissions\Models;
+namespace Xditn\Modules\Permissions\Models;
 
 use Xditn\Base\XditnModel as Model;
 use Illuminate\Database\Eloquent\Collection;

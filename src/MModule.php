@@ -278,7 +278,7 @@ class MModule
 
     public static function deleteConfigFile(): bool
     {
-        $configFilePath = config_path('xditn.config');
+        $configFilePath = config_path('xditn.php');
         if (File::exists($configFilePath)) {
             return File::delete($configFilePath);
         }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Permissions\Providers;
+namespace Xditn\Modules\Permissions\Providers;
 
-use Modules\Permissions\Middlewares\PermissionGate;
+use Xditn\Modules\Permissions\Middlewares\PermissionGate;
 use Xditn\Providers\XditnModuleServiceProvider;
 
 class PermissionsServiceProvider extends XditnModuleServiceProvider

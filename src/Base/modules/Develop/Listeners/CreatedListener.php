@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Develop\Listeners;
+namespace Xditn\Modules\Develop\Listeners;
 
-use Modules\Develop\Support\Generate\Module;
+use Xditn\Modules\Develop\Support\Generate\Module;
 use Xditn\Events\Module\Created;
 
 class CreatedListener

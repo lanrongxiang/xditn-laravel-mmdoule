@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Develop\Http\Controllers\ModuleController;
-use Modules\Develop\Http\Controllers\GenerateController;
-use Modules\Develop\Http\Controllers\SchemaController;
+use Xditn\Modules\Develop\Http\Controllers\ModuleController;
+use Xditn\Modules\Develop\Http\Controllers\GenerateController;
+use Xditn\Modules\Develop\Http\Controllers\SchemaController;
 
 Route::apiResource('module', ModuleController::class);
 Route::post('module/install', [ModuleController::class, 'install']);

@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Develop\Support\Generate\Create;
+namespace Xditn\Modules\Develop\Support\Generate\Create;
 
 use Exception;
 use Illuminate\Database\Schema\Blueprint;

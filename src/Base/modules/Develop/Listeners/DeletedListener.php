@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Develop\Listeners;
+namespace Xditn\Modules\Develop\Listeners;
 
 
 use Xditn\Events\Module\Deleted;

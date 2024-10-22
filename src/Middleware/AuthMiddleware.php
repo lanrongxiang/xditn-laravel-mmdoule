@@ -24,7 +24,7 @@ class AuthMiddleware
             Event::dispatch(new UserEvent($user));
 
             return $next($request);
-        } xditn (Exception|Throwable $e) {
+        } catch (Exception|Throwable $e) {
             throw new FailedException(Code::LOST_LOGIN->message().":{$e->getMessage()}", Code::LOST_LOGIN);
         }
     }

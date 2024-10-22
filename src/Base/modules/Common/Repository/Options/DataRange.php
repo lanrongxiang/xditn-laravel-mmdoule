@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Common\Repository\Options;
+namespace Xditn\Modules\Common\Repository\Options;
 
-use Modules\Permissions\Enums\DataRange as DataRangeEnum;
+use Xditn\Modules\Permissions\Enums\DataRange as DataRangeEnum;
 
 class DataRange implements OptionInterface
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Common\Support\Upload\Uses;
+namespace Xditn\Modules\Common\Support\Upload\Uses;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;

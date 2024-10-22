@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\User\Http\Controllers;
+namespace Xditn\Modules\User\Http\Controllers;
 
 use Xditn\Base\XditnController as Controller;
 use Xditn\Support\Module\ModuleRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Modules\Permissions\Models\Departments;
-use Modules\User\Models\LogLogin;
-use Modules\User\Models\LogOperate;
-use Modules\User\Models\User;
+use Xditn\Modules\Permissions\Models\Departments;
+use Xditn\Modules\User\Models\LogLogin;
+use Xditn\Modules\User\Models\LogOperate;
+use Xditn\Modules\User\Models\User;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Modules\User\Http\Requests\UserRequest;
+use Xditn\Modules\User\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 
 class UserController extends Controller

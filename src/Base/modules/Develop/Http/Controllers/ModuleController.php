@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Develop\Http\Controllers;
+namespace Xditn\Modules\Develop\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
-use Modules\Develop\Support\ModuleInstall;
+use Xditn\Modules\Develop\Support\ModuleInstall;
 use Xditn\Base\XditnController;
 use Xditn\Contracts\ModuleRepositoryInterface;
 use Xditn\Exceptions\FailedException;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Permissions\Models;
+namespace Xditn\Modules\Permissions\Models;
 
 use Xditn\Base\XditnModel as Model;
 
@@ -20,7 +20,7 @@ use Xditn\Base\XditnModel as Model;
 */
 class Jobs extends Model
 {
-    protected $table = 'jobs';
+    protected $table = 'station';
 
     protected $fillable = ['id', 'job_name', 'coding', 'status', 'sort', 'description', 'creator_id', 'created_at', 'updated_at', 'deleted_at'];
 

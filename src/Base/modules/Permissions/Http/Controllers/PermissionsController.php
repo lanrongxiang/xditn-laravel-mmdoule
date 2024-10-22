@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Permissions\Http\Controllers;
+namespace Xditn\Modules\Permissions\Http\Controllers;
 
 use Xditn\Base\XditnController as Controller;
 use Xditn\Exceptions\FailedException;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Permissions\Enums\MenuType;
-use Modules\Permissions\Models\Permissions;
+use Xditn\Modules\Permissions\Enums\MenuType;
+use Xditn\Modules\Permissions\Models\Permissions;
 use Illuminate\Http\Request;
 
 class PermissionsController extends Controller

@@ -37,7 +37,7 @@ return [
     // 数据库 SQL 日志监听
     'listen_db_log' => true,
     // 管理员身份验证模型配置
-    'auth_model' => \Modules\User\Models\User::class,
+    'auth_model' => \Xditn\Modules\User\Models\User::class,
     // 路由配置
     'route' => [
         'prefix' => 'api',  // 路由前缀

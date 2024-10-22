@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\System\Http\Controllers;
+namespace Xditn\Modules\System\Http\Controllers;
 
 use Xditn\Base\XditnController as Controller;
-use Modules\System\Models\DictionaryValues;
+use Xditn\Modules\System\Models\DictionaryValues;
 use Illuminate\Http\Request;
 
 class DictionaryValuesController extends Controller

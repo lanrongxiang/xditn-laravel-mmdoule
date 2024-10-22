@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\User\Models;
+namespace Xditn\Modules\User\Models;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;

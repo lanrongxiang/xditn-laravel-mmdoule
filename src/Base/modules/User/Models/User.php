@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\User\Models;
+namespace Xditn\Modules\User\Models;
 
 use Xditn\Base\XditnModel as Model;
 use Xditn\Enums\Status;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Modules\User\Models\Traits\UserRelations;
+use Xditn\Modules\User\Models\Traits\UserRelations;
 use Illuminate\Auth\Authenticatable;
 
 /**
@@ -97,9 +97,9 @@ class User extends Model implements AuthenticatableContract
      * update
      * @param $id
      * @param array $data
-     * @return ?bool
+     * @return mixed
      */
-    public function updateBy($id, array $data): ?bool
+    public function updateBy($id, array $data): mixed
     {
         if (empty($data['password'])) {
             unset($data['password']);

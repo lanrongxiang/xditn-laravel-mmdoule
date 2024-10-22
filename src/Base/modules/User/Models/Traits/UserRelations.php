@@ -1,12 +1,12 @@
 <?php
 
-namespace Modules\User\Models\Traits;
+namespace Xditn\Modules\User\Models\Traits;
 
 use Xditn\Support\Module\ModuleRepository;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
-use Modules\Permissions\Models\Permissions;
+use Xditn\Modules\Permissions\Models\Permissions;
 use Xditn\MModule;
 
 trait UserRelations
@@ -115,7 +115,7 @@ trait UserRelations
     /**
      * get RolesModel
      *
-     * @see \Modules\Permissions\Models\Roles
+     * @see \Xditn\Modules\Permissions\Models\Roles
      * @return string
      */
     protected function getRolesModel(): string
@@ -127,7 +127,7 @@ trait UserRelations
     /**
      * get JobsModel
      *
-     * @see \Modules\Permissions\Models\Jobs
+     * @see \Xditn\Modules\Permissions\Models\Jobs
      * @return string
      */
     protected function getJobsModel(): string
@@ -139,7 +139,7 @@ trait UserRelations
      * get PermissionsModel
      *
      * @return string
-     *@see \Modules\Permissions\Models\Permissions
+     *@see \Xditn\Modules\Permissions\Models\Permissions
      */
     protected function getPermissionsModel(): string
     {

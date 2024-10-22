@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\User\Models;
+namespace Xditn\Modules\User\Models;
 
 use Xditn\Traits\DB\BaseOperate;
 use Xditn\Traits\DB\ScopeTrait;

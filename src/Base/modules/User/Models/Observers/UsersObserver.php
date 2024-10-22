@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\User\Models\Observers;
+namespace Xditn\Modules\User\Models\Observers;
 
-use Modules\User\Models\User;
+use Xditn\Modules\User\Models\User;
 
 class UsersObserver
 {

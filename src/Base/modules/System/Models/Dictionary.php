@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\System\Models;
+namespace Xditn\Modules\System\Models;
 
 use Xditn\Base\XditnModel as Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;

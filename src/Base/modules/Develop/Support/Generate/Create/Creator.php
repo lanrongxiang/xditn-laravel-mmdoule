@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Develop\Support\Generate\Create;
+namespace Xditn\Modules\Develop\Support\Generate\Create;
 
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\File;

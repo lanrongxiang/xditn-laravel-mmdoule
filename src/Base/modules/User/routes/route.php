@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\User\Http\Controllers\AuthController;
-use Modules\User\Http\Controllers\UserController;
+use Xditn\Modules\User\Http\Controllers\AuthController;
+use Xditn\Modules\User\Http\Controllers\UserController;
 
 // login route
 Route::post('login', [AuthController::class, 'login'])->withoutMiddleware(config('xditn.route.middlewares'));

@@ -155,6 +155,7 @@ class XditnServiceProvider extends ServiceProvider
      */
     protected function bootDefaultModuleProviders(): void
     {
+
         // 获取默认模块，并注册其服务提供者
         foreach ($this->app['config']->get('xditn.module.default', []) as $module) {
             $provider = MModule::getModuleServiceProvider($module);

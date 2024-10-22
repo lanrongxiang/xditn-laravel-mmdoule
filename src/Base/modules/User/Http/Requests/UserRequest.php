@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\User\Http\Requests;
+namespace Xditn\Modules\User\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Modules\Permissions\Models\Roles;
+use Xditn\Modules\Permissions\Models\Roles;
 
 class UserRequest extends FormRequest
 {

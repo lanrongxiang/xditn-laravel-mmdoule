@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Permissions\Enums;
+namespace Xditn\Modules\Permissions\Enums;
 
 use Xditn\Enums\Enum;
 

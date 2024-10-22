@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Modules\Permissions\Http\Controllers;
+namespace Xditn\Modules\Permissions\Http\Controllers;
 
 use Xditn\Base\XditnController as Controller;
 use Xditn\Exceptions\FailedException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Modules\Permissions\Enums\DataRange;
-use Modules\Permissions\Models\Roles;
-use Modules\Permissions\Http\Requests\RoleRequest;
+use Xditn\Modules\Permissions\Enums\DataRange;
+use Xditn\Modules\Permissions\Models\Roles;
+use Xditn\Modules\Permissions\Http\Requests\RoleRequest;
 
 class RolesController extends Controller
 {

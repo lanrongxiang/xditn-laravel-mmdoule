@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Common\Http\Controllers;
+namespace Xditn\Modules\Common\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Modules\Common\Support\Upload\OssUpload;
-use Modules\Common\Support\Upload\Uploader;
+use Xditn\Modules\Common\Support\Upload\OssUpload;
+use Xditn\Modules\Common\Support\Upload\Uploader;
 
 /**
  * image

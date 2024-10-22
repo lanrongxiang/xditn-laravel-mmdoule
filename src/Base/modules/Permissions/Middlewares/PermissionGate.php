@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Permissions\Middlewares;
+namespace Xditn\Modules\Permissions\Middlewares;
 
 use Illuminate\Http\Request;
-use Modules\Permissions\Exceptions\PermissionForbidden;
-use Modules\User\Models\User;
+use Xditn\Modules\Permissions\Exceptions\PermissionForbidden;
+use Xditn\Modules\User\Models\User;
 
 class PermissionGate
 {

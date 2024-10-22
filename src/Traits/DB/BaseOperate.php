@@ -87,9 +87,9 @@ trait BaseOperate
      * @param $id
      * @param array $data
      *
-     * @return bool|null
+     * @return mixed
      */
-    public function updateBy($id, array $data): ?bool
+    public function updateBy($id, array $data): mixed
     {
         $model = $this->find($id);
         return $model->fill($this->filterData($data))->save() ?? $this->updateRelations($model, $data);
@@ -130,7 +130,7 @@ trait BaseOperate
      *
      * @param $id
      * @param bool $force
-     * @return bool|null
+     * @return mixed
      */
     public function deleteBy($id, bool $force = false): ?bool
     {

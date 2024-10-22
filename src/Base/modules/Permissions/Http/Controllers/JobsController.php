@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\Permissions\Http\Controllers;
+namespace Xditn\Modules\Permissions\Http\Controllers;
 
 use Xditn\Base\XditnController as Controller;
-use Modules\Permissions\Models\Jobs;
+use Xditn\Modules\Permissions\Models\Jobs;
 use Illuminate\Http\Request;
 
 class JobsController extends Controller

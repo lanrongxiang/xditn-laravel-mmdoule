@@ -21,7 +21,7 @@ class Installer
     {
         $filesystem = new Filesystem();
         foreach ($modules as $module) {
-            $module = ucfirst($module);
+            $module      = ucfirst($module);
             $source      = __DIR__ . '/../Base/modules/' . $module;
             $destination = MModule::getModulePath($module);
             try {
@@ -44,7 +44,7 @@ class Installer
     }
 
     /**
-     * 递归复制文件夹和文件
+     * 递归复制文件夹和文件，并检查和修改命名空间
      *
      * @param string $source
      * @param string $destination
@@ -79,8 +79,16 @@ class Installer
             if (is_dir($sourcePath)) {
                 self::recursiveCopy($sourcePath, $destinationPath);
             } elseif (is_file($sourcePath) || is_link($sourcePath)) {
-                // 如果是文件或符号链接，复制文件
-                if (!copy($sourcePath, $destinationPath)) {
+                // 如果是 PHP 文件，检查命名空间
+                if (pathinfo($sourcePath, PATHINFO_EXTENSION) === 'php') {
+                    // 获取文件内容
+                    $content = file_get_contents($sourcePath);
+                    // 如果包含 Xditn\Modules\，则替换为 Modules\
+                    $modifiedContent = str_replace('Xditn\\Modules\\', 'Modules\\', $content);
+                    // 将修改后的内容写入目标文件
+                    file_put_contents($destinationPath, $modifiedContent);
+                } elseif (!copy($sourcePath, $destinationPath)) {
+                    // 非 PHP 文件直接复制
                     throw new Exception("无法复制文件: $sourcePath 到 $destinationPath");
                 }
             }

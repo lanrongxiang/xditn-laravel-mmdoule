@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Permissions\Http\Requests;
+namespace Xditn\Modules\Permissions\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Modules\Permissions\Models\Traits;
+namespace Xditn\Modules\Permissions\Models\Traits;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Modules\Permissions\Models\Departments;
-use Modules\Permissions\Models\Roles;
-use Modules\Permissions\Enums\DataRange as DataRangeEnum;
+use Xditn\Modules\Permissions\Models\Departments;
+use Xditn\Modules\Permissions\Models\Roles;
+use Xditn\Modules\Permissions\Enums\DataRange as DataRangeEnum;
 
 /**
  * @method aliasField(string $field)

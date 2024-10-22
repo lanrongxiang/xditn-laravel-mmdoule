@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\System;
+namespace Xditn\Modules\System;
 
 use Xditn\Support\Module\Installer as ModuleInstaller;
 

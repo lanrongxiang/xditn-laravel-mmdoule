@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\User\Listeners;
+namespace Xditn\Modules\User\Listeners;
 
 use Xditn\Enums\Status;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
-use Modules\User\Events\Login as Event;
-use Modules\User\Models\LogLogin;
-use Modules\User\Models\User;
+use Xditn\Modules\User\Events\Login as Event;
+use Xditn\Modules\User\Models\LogLogin;
+use Xditn\Modules\User\Models\User;
 
 class Login
 {

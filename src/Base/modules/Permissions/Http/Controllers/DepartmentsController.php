@@ -1,10 +1,10 @@
 <?php
 
 declare(strict_types=1);
-namespace Modules\Permissions\Http\Controllers;
+namespace Xditn\Modules\Permissions\Http\Controllers;
 
 use Xditn\Base\XditnController as Controller;
-use Modules\Permissions\Models\Departments;
+use Xditn\Modules\Permissions\Models\Departments;
 use Illuminate\Http\Request;
 
 class DepartmentsController extends Controller

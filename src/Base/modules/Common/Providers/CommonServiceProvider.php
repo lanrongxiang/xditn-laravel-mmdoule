@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Common\Providers;
+namespace Xditn\Modules\Common\Providers;
 
-use Modules\User\Events\Login;
-use Modules\User\Listeners\Login as LoginListener;
-use Modules\User\Middlewares\OperatingMiddleware;
+use Xditn\Modules\User\Events\Login;
+use Xditn\Modules\User\Listeners\Login as LoginListener;
+use Xditn\Modules\User\Middlewares\OperatingMiddleware;
 use Xditn\Providers\XditnServiceProvider;
 
 class CommonServiceProvider extends XditnServiceProvider

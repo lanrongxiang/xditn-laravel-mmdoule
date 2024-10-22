@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Develop\Http\Controllers;
+namespace Xditn\Modules\Develop\Http\Controllers;
 
 use Xditn\Base\XditnController as Controller;
 use Exception;
 use Illuminate\Http\Request;
-use Modules\Develop\Support\Generate\Generator;
+use Xditn\Modules\Develop\Support\Generate\Generator;
 
 class GenerateController extends Controller
 {

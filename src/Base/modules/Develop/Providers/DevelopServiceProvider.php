@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\Develop\Providers;
+namespace Xditn\Modules\Develop\Providers;
 
-use Modules\Develop\Listeners\CreatedListener;
-use Modules\Develop\Listeners\DeletedListener;
+use Xditn\Modules\Develop\Listeners\CreatedListener;
+use Xditn\Modules\Develop\Listeners\DeletedListener;
 use Xditn\Events\Module\Created;
 use Xditn\Events\Module\Deleted;
 use Xditn\Providers\XditnModuleServiceProvider;

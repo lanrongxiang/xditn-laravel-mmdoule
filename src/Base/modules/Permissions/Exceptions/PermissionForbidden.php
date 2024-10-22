@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Permissions\Exceptions;
+namespace Xditn\Modules\Permissions\Exceptions;
 
 use Symfony\Component\HttpFoundation\Response;
 use Xditn\Enums\Code;

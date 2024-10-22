@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Develop\Support\Generate;
+namespace Xditn\Modules\Develop\Support\Generate;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;

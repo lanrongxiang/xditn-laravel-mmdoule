@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\System\Providers;
+namespace Xditn\Modules\System\Providers;
 
 
 use Xditn\Providers\XditnModuleServiceProvider;

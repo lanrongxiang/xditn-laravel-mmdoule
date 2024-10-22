@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\Develop\Support\Generate;
+namespace Xditn\Modules\Develop\Support\Generate;
 
 use Exception;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Modules\Develop\Support\Generate\Create\Controller;
-use Modules\Develop\Support\Generate\Create\FrontForm;
-use Modules\Develop\Support\Generate\Create\FrontTable;
-use Modules\Develop\Support\Generate\Create\Model;
-use Modules\Develop\Support\Generate\Create\Request;
-use Modules\Develop\Support\Generate\Create\Route;
+use Xditn\Modules\Develop\Support\Generate\Create\Controller;
+use Xditn\Modules\Develop\Support\Generate\Create\FrontForm;
+use Xditn\Modules\Develop\Support\Generate\Create\FrontTable;
+use Xditn\Modules\Develop\Support\Generate\Create\Model;
+use Xditn\Modules\Develop\Support\Generate\Create\Request;
+use Xditn\Modules\Develop\Support\Generate\Create\Route;
 use Xditn\Exceptions\FailedException;
 
 /**

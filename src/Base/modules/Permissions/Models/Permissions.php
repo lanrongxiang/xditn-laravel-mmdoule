@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Modules\Permissions\Models;
+namespace Xditn\Modules\Permissions\Models;
 
 use Xditn\Base\XditnModel as Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Permissions\Enums\MenuStatus;
-use Modules\Permissions\Enums\MenuType;
+use Xditn\Modules\Permissions\Enums\MenuStatus;
+use Xditn\Modules\Permissions\Enums\MenuType;
 use Xditn\Enums\Status;
 use Xditn\Exceptions\FailedException;
 use Xditn\MModule;

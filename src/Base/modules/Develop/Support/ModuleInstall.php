@@ -1,5 +1,5 @@
 <?php
-namespace Modules\Develop\Support;
+namespace Xditn\Modules\Develop\Support;
 
 
 use Illuminate\Support\Facades\File;

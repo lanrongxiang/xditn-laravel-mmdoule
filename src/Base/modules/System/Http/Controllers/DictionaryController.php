@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Modules\System\Http\Controllers;
+namespace Xditn\Modules\System\Http\Controllers;
 
 use Xditn\Base\XditnController as Controller;
-use Modules\System\Models\Dictionary;
+use Xditn\Modules\System\Models\Dictionary;
 use Illuminate\Http\Request;
 
 

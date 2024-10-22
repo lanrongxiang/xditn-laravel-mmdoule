@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Develop\Providers;
+namespace Xditn\Modules\Develop\Providers;
 
 
 use Xditn\Support\Module\Installer;

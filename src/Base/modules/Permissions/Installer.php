@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\Permissions;
+namespace Xditn\Modules\Permissions;
 
 use Xditn\Support\Module\Installer as ModuleInstaller;
-use Modules\Permissions\Providers\PermissionsServiceProvider;
+use Xditn\Modules\Permissions\Providers\PermissionsServiceProvider;
 
 class Installer extends ModuleInstaller
 {

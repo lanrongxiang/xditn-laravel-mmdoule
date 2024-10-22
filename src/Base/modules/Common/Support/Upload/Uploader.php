@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Common\Support\Upload;
+namespace Xditn\Modules\Common\Support\Upload;
 
-use Modules\Common\Support\Upload\Uses\LocalUpload;
+use Xditn\Modules\Common\Support\Upload\Uses\LocalUpload;
 use Illuminate\Http\UploadedFile;
 use Xditn\Exceptions\FailedException;
 

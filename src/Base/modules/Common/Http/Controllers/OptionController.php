@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Common\Http\Controllers;
+namespace Xditn\Modules\Common\Http\Controllers;
 use Exception;
-use Modules\Common\Repository\Options\Factory;
+use Xditn\Modules\Common\Repository\Options\Factory;
 
 class OptionController
 {

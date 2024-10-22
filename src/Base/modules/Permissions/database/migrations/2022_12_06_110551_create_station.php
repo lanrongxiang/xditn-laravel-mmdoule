@@ -12,11 +12,8 @@ return new class () extends Migration {
      */
     public function up()
     {
-        if (Schema::hasTable('jobs')) {
-            return ;
-        }
 
-        Schema::create('jobs', function (Blueprint $table) {
+        Schema::create('station', function (Blueprint $table) {
             $table->increments('id');
             $table->string('job_name', 50)->comment('岗位名称');
             $table->string('coding', 30)->nullable()->comment('创建人ID');

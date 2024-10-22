@@ -1,5 +1,5 @@
 <?php
-namespace Modules\Common\Support\Upload;
+namespace Xditn\Modules\Common\Support\Upload;
 
 class OssUpload
 {

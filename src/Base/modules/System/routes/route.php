@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\System\Http\Controllers\DictionaryController;
-use Modules\System\Http\Controllers\DictionaryValuesController;
+use Xditn\Modules\System\Http\Controllers\DictionaryController;
+use Xditn\Modules\System\Http\Controllers\DictionaryValuesController;
 
 Route::prefix('system')->group(function(){
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Develop\Models;
+namespace Xditn\Modules\Develop\Models;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Develop\Support\Generate\Create\Schema;
+use Xditn\Modules\Develop\Support\Generate\Create\Schema;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Xditn\Base\XditnModel;
 use Xditn\Enums\Status;

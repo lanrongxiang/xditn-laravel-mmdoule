@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\User\Middlewares;
+namespace Xditn\Modules\User\Middlewares;
 
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Modules\User\Models\LogOperate;
+use Xditn\Modules\User\Models\LogOperate;
 
 class OperatingMiddleware
 {

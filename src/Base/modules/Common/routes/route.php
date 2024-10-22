@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Common\Http\Controllers\OptionController;
-use Modules\Common\Http\Controllers\UploadController;
+use Xditn\Modules\Common\Http\Controllers\OptionController;
+use Xditn\Modules\Common\Http\Controllers\UploadController;
 
 /*
 |--------------------------------------------------------------------------

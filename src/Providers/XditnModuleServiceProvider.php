@@ -97,7 +97,7 @@ abstract class XditnModuleServiceProvider extends ServiceProvider
         // 添加当前模块的路由路径
         $routes[] = MModule::getModuleRoutePath($this->moduleName());
         // 设置新的模块路由配置
-        config('xditn.module.routes', $routes);
+        $this->app['config']->set('xditn.module.routes', $routes);
     }
 
     // 抽象方法：返回模块名称
