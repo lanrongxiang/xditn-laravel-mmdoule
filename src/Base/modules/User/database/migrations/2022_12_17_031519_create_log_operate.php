@@ -4,15 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class () extends Migration {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
+return new class () extends Migration
+{
     public function up()
     {
-        Schema::create('log_operate', function (Blueprint $table) {
+        Schema::create('log_operate', function (Blueprint $table)
+        {
             $table->increments('id');
             $table->string('module', 50)->comment('操作');
             $table->string('action', 50)->comment('操作');
@@ -24,17 +21,11 @@ return new class () extends Migration {
             $table->smallInteger('time_taken')->comment('请求消耗时间/ms');
             $table->creatorId();
             $table->createdAt();
-
             $table->engine = 'InnoDB';
             $table->comment('操作日志');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('log_operate');

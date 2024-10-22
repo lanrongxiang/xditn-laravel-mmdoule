@@ -202,16 +202,19 @@ class InstallCommand extends XditnCommand
             'key:generate',
             'vendor:publish --tag=xditn-config --force',
             'vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"',
-            'migrate',
         ];
         foreach ($commands as $command) {
             Process::run(Application::formatCommandString($command))->throw();
         }
         //安装默认模板
-        $installer = MModule::getModuleInstaller('develop');
-        $installer->install();
         $installer = MModule::getModuleInstaller('user');
         $installer->install();
+
+        $installer = MModule::getModuleInstaller('develop');
+        $installer->install();
+        //初始化迁移位置不要更改
+        Process::run(Application::formatCommandString('migrate'))->throw();
+
         if ($installPermissions) {
             $installer = MModule::getModuleInstaller('permissions');
             $installer->install();

@@ -97,9 +97,9 @@ class User extends Model implements AuthenticatableContract
      * update
      * @param $id
      * @param array $data
-     * @return mixed
+     * @return ?bool
      */
-    public function updateBy($id, array $data): mixed
+    public function updateBy($id, array $data): ?bool
     {
         if (empty($data['password'])) {
             unset($data['password']);
