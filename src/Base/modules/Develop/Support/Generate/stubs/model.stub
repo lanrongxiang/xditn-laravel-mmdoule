@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {namespace}
+
+{uses}
+
+{property}
+class {model} extends Model
+{
+    {traits}
+
+    protected $table = '{table}';
+
+    {dateFormat}
+    {timestamps}
+
+    protected $fillable = [{fillable} ];
+
+    /**
+     * @var array
+     */
+    protected array $fields = [{fieldsInList}];
+
+    /**
+     * @var array
+     */
+    protected array $form = [{form}];
+
+    /**
+     * @var array
+     */
+    public array $searchable = [
+        {searchable}
+    ];
+
+    {isPaginate}
+}

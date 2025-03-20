@@ -1,0 +1,31 @@
+<?php
+
+namespace Xditn\Base\modules\Common\Enums;
+
+use Xditn\Enums\Enum;
+
+enum {ENUM_CLASS}: {TYPE} implements Enum
+{
+    {CASE}
+
+    public function value(): {TYPE}
+    {
+        // TODO: Implement value() method.
+        return match ($this) {
+           {VALUE}
+        };
+    }
+
+    public function name(): string
+    {
+        // TODO: Implement name() method.
+        return match ($this) {
+            {NAME}
+        };
+    }
+
+    public function assert({TYPE} $value): bool
+    {
+        return $this->value === $value;
+    }
+}

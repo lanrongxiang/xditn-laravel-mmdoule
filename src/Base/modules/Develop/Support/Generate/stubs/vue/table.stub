@@ -1,0 +1,28 @@
+<template>
+  <div>
+    <xditn-table
+      :columns="columns"
+      :api="api"
+      :search-form="search"
+      {row-key}
+      {paginate}
+    >
+      <template #dialog="row">
+        <Create :primary="row?.id" :api="api" />
+      </template>
+    </xditn-table>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { ref } from 'vue'
+{createForm}
+const api = '{api}'
+
+// table columns
+const columns = {columns}
+
+// table search
+const search = {search}
+</script>
+

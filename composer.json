@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "name": "xditn/laravel-mmodule",
+  "description": "laravel多模块启动脚本",
+  "type": "library",
+  "require": {
+    "php": "^8.2",
+    "ext-pdo": "*",
+    "ext-zip": "*",
+    "laravel/sanctum": "4.x-dev",
+    "w7corp/easywechat": "^6.15.0",
+    "yansongda/pay": "v3.7.10"
+  },
+  "require-dev": {
+    "laravel/framework": "^11.0",
+    "laravel/pint": "dev-main",
+    "knuckleswtf/scribe": "dev-master"
+  },
+  "license": "MIT",
+  "autoload": {
+    "files": [
+      "src/Support/helpers.php"
+    ],
+    "psr-4": {
+      "Xditn\\": "src/",
+      "modules\\": "src/Base/modules"
+    },
+    "exclude-from-classmap": [
+      "src/Base/modules/*"
+    ]
+  },
+  "authors": [
+    {
+      "name": "lan",
+      "email": "532006864@qq.com"
+    }
+  ],
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Xditn\\Providers\\XditnServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "dev"
+}

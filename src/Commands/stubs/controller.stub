@@ -1,0 +1,35 @@
+<?php
+
+namespace {namespace};
+
+use Xditn\Base\XditnController;
+use Illuminate\Http\Request;
+
+class {controller} extends XditnController
+{
+    public function index(Request $request)
+    {
+
+    }
+
+    public function store(Request $request)
+    {
+
+    }
+
+    public function show($id)
+    {
+
+    }
+
+
+    public function update($id, Request $request)
+    {
+
+    }
+
+    public function destroy($id)
+    {
+
+    }
+}

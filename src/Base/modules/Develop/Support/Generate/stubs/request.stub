@@ -1,0 +1,30 @@
+<?php
+
+namespace {namespace}
+
+use Illuminate\Foundation\Http\FormRequest as Request;
+
+class {request} extends Request
+{
+    protected $stopOnFirstFailure = true;
+
+    /**
+     * @return array
+     */
+    public function rules(): array
+    {
+        return [
+            {rule}
+        ];
+    }
+
+
+    /**
+     *
+     * @return array
+     */
+    public function messages(): array
+    {
+        return [];
+    }
+}

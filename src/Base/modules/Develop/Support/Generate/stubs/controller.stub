@@ -1,0 +1,59 @@
+<?php
+declare(strict_types=1);
+
+namespace {namespace}
+
+use Xditn\Base\XditnController as Controller;
+{uses}
+
+class {controller} extends Controller
+{
+    public function __construct(
+        protected readonly {model} $model
+    ){}
+
+    /**
+     * @return mixed
+     */
+    public function index(): mixed
+    {
+        return $this->model->getList();
+    }
+
+    /**
+     * @param {request} $request
+     * @return mixed
+     */
+    public function store({request} $request)
+    {
+        return $this->model->storeBy($request->all());
+    }
+
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function show($id)
+    {
+        return $this->model->firstBy($id);
+    }
+
+    /**
+     * @param {request} $request
+     * @param $id
+     * @return mixed
+     */
+    public function update($id, {request} $request)
+    {
+        return $this->model->updateBy($id, $request->all());
+    }
+
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function destroy($id)
+    {
+        return $this->model->deleteBy($id);
+    }
+}
