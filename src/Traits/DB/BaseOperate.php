@@ -520,7 +520,7 @@ trait BaseOperate
      */
     protected function getDefaultSortOrder(): string
     {
-        return property_exists($this, 'sortDesc') && $this->sortDesc ? 'desc' : 'asc';
+        return property_exists($this, 'sortDesc') && $this->sortDesc ? 'asc' : 'desc';
     }
 
     /**

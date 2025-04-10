@@ -17,7 +17,7 @@ class Listener extends XditnCommand
      *
      * @var string
      */
-    protected $signature = 'xditn:make:listener {module} {name}';
+    protected $signature = 'xditn:make:listener {module} {name} {--event= : 自动生成关联的事件类}';
 
     /**
      * 控制台命令的描述
@@ -33,13 +33,64 @@ class Listener extends XditnCommand
      */
     public function handle(): void
     {
-        $listenerPath = MModule::getModuleListenersPath($this->argument('module'));
+        $module = $this->argument('module');
+        $listenerPath = MModule::getModuleListenersPath($module);
         $file = $listenerPath.$this->getListenerFile();
+
         if (File::exists($file) && ! $this->confirmOverwrite($file)) {
             return;
         }
+
+        // 生成监听器
         File::put($file, $this->generateStubContent());
         $this->info(File::exists($file) ? "$file 已创建" : "$file 创建失败");
+
+        // 如果指定了自动生成事件
+        if ($this->option('event')) {
+            $this->generateEvent($module);
+        }
+    }
+
+    /**
+     * 生成关联的事件类
+     *
+     * @param string $module
+     * @return void
+     */
+    protected function generateEvent(string $module): void
+    {
+        $eventName = $this->option('event');
+
+        // 如果用户只提供了事件名的一部分，自动补全
+        if (!Str::contains($eventName, 'Event')) {
+            $eventName .= 'Event';
+        }
+
+        $this->call('xditn:make:event', [
+            'module' => $module,
+            'name' => $eventName
+        ]);
+
+        // 更新监听器文件，添加事件类型提示
+        $listenerPath = MModule::getModuleListenersPath($module);
+        $file = $listenerPath.$this->getListenerFile();
+
+        if (File::exists($file)) {
+            $eventNamespace = trim(MModule::getModuleEventsNamespace($module), '\\');
+            $eventClass = Str::of($eventName)
+                             ->whenContains('Event', fn ($str) => $str, fn ($str) => $str->append('Event'))
+                             ->ucfirst()
+                             ->toString();
+
+            $content = File::get($file);
+            $content = Str::replace(
+                'public function handle($event)',
+                "public function handle(\\{$eventNamespace}\\{$eventClass} \$event)",
+                $content
+            );
+
+            File::put($file, $content);
+        }
     }
 
     /**

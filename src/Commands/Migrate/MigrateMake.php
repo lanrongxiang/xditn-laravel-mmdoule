@@ -17,7 +17,7 @@ class MigrateMake extends XditnCommand
      *
      * @var string
      */
-    protected $signature = 'xditn:make:migration {module : 模块名称} {name : 迁移文件名称}';
+    protected $signature = 'xditn:make:migration {module : 模块名称} {name : 迁移文件名称} {table : 数据库表名}';
 
     /**
      * 命令描述
@@ -33,6 +33,7 @@ class MigrateMake extends XditnCommand
     {
         $module = $this->argument('module');
         $name = $this->argument('name');
+        $table = $this->argument('table');
 
         $migrationPath = MModule::getModuleMigrationPath($module);
 
@@ -42,7 +43,7 @@ class MigrateMake extends XditnCommand
 
         $fileName = date('Y_m_d_His').'_'.Str::snake($name).'.php';
 
-        File::put($migrationPath.'/'.$fileName, $this->buildMigration($module, $name));
+        File::put($migrationPath.'/'.$fileName, $this->buildMigration($module, $name,$table));
 
         $this->info("迁移文件 {$fileName} 创建成功");
     }
@@ -50,13 +51,13 @@ class MigrateMake extends XditnCommand
     /**
      * 构建迁移文件内容
      */
-    protected function buildMigration(string $module, string $name): string
+    protected function buildMigration(string $module, string $name, string $table): string
     {
-        $migrationStub = File::get(__DIR__.'/stubs/migration.stub');
+        $migrationStub = File::get(__DIR__.'/../stubs/migration.stub');
 
         return str_replace(
-            ['{{ module }}', '{{ migration }}'],
-            [$module, Str::studly($name)],
+            ['{{ module }}', '{{ migration }}', '{{ table }}'],
+            [$module, Str::studly($name) , $table],
             $migrationStub
         );
     }

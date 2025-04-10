@@ -109,20 +109,13 @@ class Model extends Creator
     protected function getUses(): string
     {
         if ($this->softDelete) {
-            return 'use Xditn\Base\XditnModel as Model;';
+            return  Str::of('')
+                       ->append('use Illuminate\Database\Eloquent\Model;')
+                       ->newLine()
+                       ->append('use Xditn\Traits\DB\SoftDeletesTrait;')
+                       ->toString();
         }
-        return Str::of('')
-            ->append('use Illuminate\Database\Eloquent\Model;')
-            ->newLine()
-            ->append('use Xditn\Traits\DB\BaseOperate;')
-            ->newLine()
-            ->append('use Xditn\Traits\DB\ScopeTrait;')
-            ->newLine()
-            ->append('use Xditn\Traits\DB\TransTraits;')
-            ->newLine()
-            ->append('use Xditn\Traits\DB\WithAttributes;')
-            ->toString()
-        ;
+        return 'use Xditn\Base\XditnModel as Model;';
     }
 
     /**
@@ -131,15 +124,12 @@ class Model extends Creator
     protected function getTraits(): string
     {
         return Str::of('')
-            ->when(!$this->softDelete, function ($str) {
-                return $str->append('use BaseOperate;')->newLine()
-                    ->append('use WithAttributes;')->newLine()
-                    ->append('use TransTraits;')->newLine()
-                    ->append('use ScopeTrait;')
-                ;
-            })
-            ->toString()
-        ;
+                  ->when($this->softDelete, function ($str) {
+                      return $str->append('use SoftDeletesTrait;')
+                          ;
+                  })
+                  ->toString()
+            ;
     }
 
     protected function getProperties(): string

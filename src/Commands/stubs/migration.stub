@@ -13,8 +13,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-
-        Schema::create('{table}', function (Blueprint $table) {
+        if (Schema::hasTable('{{ table }}')) {
+            return;
+        }
+        Schema::create('{{ table }}', function (Blueprint $table) {
 
         });
     }

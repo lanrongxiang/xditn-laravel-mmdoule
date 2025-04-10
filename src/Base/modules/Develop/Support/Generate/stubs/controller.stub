@@ -13,6 +13,14 @@ class {controller} extends Controller
     ){}
 
     /**
+     *   列表
+     *
+     * @queryParam    page int 页码
+     * @queryParam    limit int 每页条数
+     * @queryParam    status int 状态
+     *
+     * @responseField status int  启用状态
+     * @responseField sort int  排序
      * @return mixed
      */
     public function index(): mixed
@@ -21,7 +29,13 @@ class {controller} extends Controller
     }
 
     /**
+     * 新增
+     *
+     * @bodyParam    sort int 排序
+     * @bodyParam    status int 状态
+     *
      * @param {request} $request
+     * @responseField data int 新增ID
      * @return mixed
      */
     public function store({request} $request)
@@ -30,6 +44,7 @@ class {controller} extends Controller
     }
 
     /**
+     * 查询
      * @param $id
      * @return mixed
      */
@@ -39,8 +54,10 @@ class {controller} extends Controller
     }
 
     /**
+     * 更新
      * @param {request} $request
      * @param $id
+     * @responseField data bool 是否更新成功
      * @return mixed
      */
     public function update($id, {request} $request)
@@ -49,11 +66,26 @@ class {controller} extends Controller
     }
 
     /**
+     * 删除
+     *
      * @param $id
+     * @responseField data bool 是否删除成功
      * @return mixed
      */
     public function destroy($id)
     {
         return $this->model->deleteBy($id);
+    }
+
+     /**
+      * 启用/禁用
+      *
+      * @responseField data bool 是否启用/禁用成功
+      *
+      * @return bool
+      */
+    public function enable($id)
+    {
+        return $this->model->toggleBy($id);
     }
 }

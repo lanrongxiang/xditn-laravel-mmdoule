@@ -5,7 +5,6 @@ namespace Xditn\Base;
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Query\Builder;
 use Xditn\Support\DB\SoftDelete;
 use Xditn\Traits\DB\BaseOperate;
@@ -23,7 +22,6 @@ abstract class XditnModel extends Model
     use BaseOperate;
     use DateformatTrait;
     use ScopeTrait;
-    use SoftDeletes;
     use TransTraits;
     use WithAttributes;
 
@@ -140,5 +138,31 @@ abstract class XditnModel extends Model
     protected function serializeDate(DateTimeInterface $date): ?string
     {
         return Carbon::instance($date)->toISOString(true);
+    }
+
+    /**
+     * 筛选时间
+     *
+     * @param $query
+     * @param string $column
+     * @param array $range
+     *
+     * @return mixed
+     */
+    public function scopeDateRange($query, string $column = 'created_at', array $range = []): mixed
+    {
+        return $query->when(!empty($range) && array_filter($range, fn($v) => $v !== null), function ($q) use ($column, $range) {
+            if($column==='created_at'){
+              return  $q->whereBetween(
+                    'created_at',
+                    [strtotime($range[0]), strtotime('+1 day', strtotime($range[1]))]);
+            }else{
+                $start = Carbon::parse($range[0])->startOfDay();
+                $end = Carbon::parse($range[1])->endOfDay();
+
+                return $q->whereBetween($column, [$start, $end]);
+            }
+
+        });
     }
 }
