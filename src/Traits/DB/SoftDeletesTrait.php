@@ -7,14 +7,14 @@ use Xditn\Support\DB\SoftDelete;
 
 trait SoftDeletesTrait
 {
-  use SoftDeletes;
+    use SoftDeletes;
 
     /**
      * 覆盖 restore 方法
      *
      * 修改 deleted_at 默认值
      */
-    public function restore()
+    public function restore(): bool
     {
         if ($this->fireModelEvent('restoring') === false) {
             return false;
@@ -34,9 +34,8 @@ trait SoftDeletesTrait
     /**
      * 启用软删除
      *
-     * @return void
      */
-    public static function bootSoftDeletes()
+    public static function bootSoftDeletes(): void
     {
         static::addGlobalScope(new SoftDelete());
     }

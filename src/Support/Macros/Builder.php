@@ -54,8 +54,8 @@ class Builder
                 return (is_string($value) && strlen($value)) || is_numeric($value) || (is_array($value) && ! empty($value));
             });
 
-            $wheres = [];
 
+            $wheres = [];
             // 遍历模型中的 searchable 字段
             foreach ($this->model->searchable as $field => $op) {
                 $_field = $field;
@@ -64,9 +64,9 @@ class Builder
                 if (str_contains($field, '.')) {
                     [, $_field] = explode('.', $field);
                 }
-
                 // 如果请求参数中存在对应的字段值，构建查询条件
-                if (isset($params[$_field]) && $searchValue = $params[$_field]) {
+                if (array_key_exists($_field, $params)) {
+                    $searchValue = $params[$_field];
                     $operate = Str::of($op)->lower();
                     $value = $searchValue;
 
@@ -92,7 +92,6 @@ class Builder
                     $wheres[] = [$field, strtolower($op), $value];
                 }
             }
-
             // 组装 where 查询条件
             foreach ($wheres as $w) {
                 [$field, $op, $value] = $w;

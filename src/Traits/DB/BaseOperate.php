@@ -72,9 +72,8 @@ trait BaseOperate
      * 保存数据
      *
      * @param  array  $data
-     * @return mixed
      */
-    public function storeBy(array $data): mixed
+    public function storeBy(array $data)
     {
         if ($this->fill($this->filterData($data))->save()) {
             if ($this->getKey()) {
