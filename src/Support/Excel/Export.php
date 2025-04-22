@@ -2,102 +2,110 @@
 
 namespace Xditn\Support\Excel;
 
-use Illuminate\Support\{Facades\Event, Facades\Storage, Str};
-use Maatwebsite\Excel\{
-    Concerns\FromArray,
-    Concerns\ShouldAutoSize,
-    Concerns\WithColumnWidths,
-    Excel,
-    Facades\Excel as ExcelFacade
-};
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Xditn\Exceptions\FailedException;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
-* 通用Excel导出抽象类
-* 
- * @package Xditn\Support\Excel
-* @abstract
+ * excel export abstract class
  */
-abstract class Export implements FromArray, ShouldAutoSize, WithColumnWidths
+abstract class Export implements FromArray, ShouldAutoSize, WithColumnWidths, WithHeadings
 {
-/** @var int 自动切换CSV格式的阈值（数据行数） */
-    protected int $toCsvLimit = 20_000;
+    /**
+     *  when data length lt 20000
+     *  it will change csv
+     */
+    protected int $toCsvLimit = 20000;
 
-    /** @var array 导出的数据集合 */
-    protected array $data = [];
+    /**
+     * data
+     */
+    protected array $data;
 
-    /** @var array 查询参数集合 */
+    /**
+     * 查询参数
+     */
     protected array $params = [];
 
-    /** @var array 表格标题配置 */
+    /**
+     * excel header
+     */
     protected array $header = [];
 
-    /** @var string|null 自定义文件名（不带扩展名） */
+    /**
+     * filename
+     */
     protected ?string $filename = null;
 
-    /** @var bool 是否解除内存限制 */
     protected bool $unlimitedMemory = false;
 
     /**
-     * 执行导出操作并返回文件路径
-     * 
-     * @return string 导出的文件绝对路径
-     * @throws FailedException 当导出过程发生错误时抛出
+     * export
      */
     public function export(): string
     {
         try {
-            $this->configureMemory();
+            // 内存限制
+            if ($this->unlimitedMemory) {
+                ini_set('memory_limit', -1);
+            }
 
-            $writeType = $this->shouldUseCsv() ? 'csv' : 'xlsx';
-            $filePath = $this->buildFilePath($writeType);
+            // 写入文件类型
+            $writeType = $this->getWriteType();
 
-            ExcelFacade::store($this, $filePath, null, $writeType);
+            // 文件保存地址
+            $file = sprintf('%s/%s', $this->getExportPath(), $this->getFilename($writeType));
 
-            Event::dispatch(\Xditn\Events\Excel\Export::class);
+            // 保存
+            Excel::store($this, $file, null, $writeType);
 
-            return $filePath;
-        } catch (\Throwable $e) {
-            throw new FailedException("导出失败: {$e->getMessage()}", 0, $e);
+            // 导出事件
+            Event::dispatch(\Catch\Events\Excel\Export::class);
+
+            return $file;
+        } catch (\Exception|\Throwable $e) {
+            throw new FailedException('导出失败: '.$e->getMessage().$e->getLine());
         }
     }
 
     /**
-     * 触发文件下载
-     * 
-     * @param string|null $filename 自定义下载文件名（包含扩展名）
-     * @return BinaryFileResponse
+     * download
      */
     public function download(?string $filename = null): BinaryFileResponse
     {
-        $filename ??= $this->generateFilename();
-        $writeType = $this->shouldUseCsv() ? 'csv' : 'xlsx';
+        $filename = $filename ?: $this->getFilename();
+        $writeType = $this->getWriteType();
 
-        return ExcelFacade::download(
+        return Excel::download(
             $this,
             $filename,
             $writeType,
-            $this->getDownloadHeaders($writeType)
+            [
+                'filename' => $filename,
+                'write_type' => $writeType,
+            ]
         );
     }
 
     /**
-     * 设置查询参数
-     * 
-     * @param array $params 查询条件参数
      * @return $this
      */
     public function setParams(array $params): static
     {
         $this->params = $params;
+
         return $this;
     }
 
     /**
-     * 获取当前查询参数
-     * 
-     * @return array
+     * get search
      */
     public function getParams(): array
     {
@@ -105,125 +113,126 @@ abstract class Export implements FromArray, ShouldAutoSize, WithColumnWidths
     }
 
     /**
-     * 生成表格标题行
-     * 
-     * @return string[] 标题数组，例如 ['ID', '姓名', '创建时间']
+     * get write type
      */
-    public function headings(): array
+    protected function getWriteType(): string
     {
-        return collect($this->header)
-            ->filter(fn ($value, $key) => is_string($key) && is_numeric($value) || is_string($value))
-            ->keys()
-            ->all();
+        if ($this instanceof WithCustomCsvSettings && count($this->array()) >= $this->toCsvLimit) {
+            return \Maatwebsite\Excel\Excel::CSV;
+        }
+
+        return \Maatwebsite\Excel\Excel::XLSX;
     }
 
     /**
-     * 配置列宽
-     * 
-     * @return int[] 列宽配置数组，例如 ['A' => 20, 'B' => 30]
+     * get export path
+     */
+    public function getExportPath(): string
+    {
+        $path = sprintf('excel/export/%s', date('Ymd'));
+
+        if (! is_dir($path) && ! mkdir($path, 0777, true) && ! is_dir($path)) {
+            throw new FailedException(sprintf('Directory "%s" was not created', $path));
+        }
+
+        return $path;
+    }
+
+    /**
+     * set filename
+     *
+     * @return $this
+     */
+    public function setFilename(string $filename): static
+    {
+        $this->filename = $filename;
+
+        return $this;
+    }
+
+    /**
+     * get filename
+     */
+    public function getFilename(?string $type = null): string
+    {
+        if (! $this->filename) {
+            return Str::random().'.'.strtolower($type ?: $this->getWriteType());
+        }
+
+        return $this->filename;
+    }
+
+    /**
+     * get excel header
+     */
+    public function getHeader(): array
+    {
+        return $this->header;
+    }
+
+    /**
+     * set excel header
+     *
+     * @return $this
+     */
+    public function setHeader(array $header): static
+    {
+        $this->header = $header;
+
+        return $this;
+    }
+
+    public function headings(): array
+    {
+        $headings = [];
+
+        foreach ($this->header as $k => $item) {
+            if (is_string($k) && is_numeric($item)) {
+                $headings[] = $k;
+            }
+
+            if (is_string($item)) {
+                $headings[] = $item;
+            }
+        }
+
+        return $headings;
+    }
+
+    /**
+     * column width
+     *
+     * @return int[]
      */
     public function columnWidths(): array
     {
-        return collect($this->header)
-            ->filter(fn ($value, $key) => is_string($key) && is_numeric($value))
-            ->mapWithKeys(fn ($width, $title, $index) => [
-                chr(65 + $index) => (int)$width // 转换为ASCII字符(A,B,C...)
-            ])
-            ->all();
+        $columns = [];
+
+        $column = ord('A') - 1;
+
+        foreach ($this->header as $k => $item) {
+            $column += 1;
+            if (is_string($k) && is_numeric($item)) {
+                $columns[chr($column)] = $item;
+            }
+        }
+
+        return $columns;
     }
 
-    /**
-     * 获取CSV格式配置
-     * 
-     * @return array 包含以下配置项：
-     * - delimiter: 字段分隔符
-     * - use_bom: 是否添加BOM头
-     * - enclosure: 文本包围符
-     */
     public function getCsvSettings(): array
     {
         return [
             'delimiter' => ';',
             'use_bom' => false,
-            'enclosure' => '"',
         ];
     }
 
     /**
-     * 执行异步导出任务
-     * 
-     * @param array $params 查询参数
-     * @return string 导出的文件路径
+     * async task
      */
-    public function run(array $params): string
+    public function run(array $params): mixed
     {
         return $this->setParams($params)->export();
-    }
-
-    /**
-     * 配置内存限制
-     */
-    protected function configureMemory(): void
-    {
-        if ($this->unlimitedMemory) {
-            ini_set('memory_limit', '-1');
-        }
-    }
-
-    /**
-     * 判断是否使用CSV格式
-     * 
-     * @return bool 当数据量超过阈值时返回true
-     */
-    protected function shouldUseCsv(): bool
-    {
-        return count($this->data) >= $this->toCsvLimit;
-    }
-
-    /**
-     * 构建文件存储路径
-     * 
-     * @param string $extension 文件扩展名（csv/xlsx）
-     * @return string 文件绝对路径
-     * @throws FailedException 当目录创建失败时抛出
-     */
-    protected function buildFilePath(string $extension): string
-    {
-        $filename = $this->generateFilename($extension);
-        Storage::makeDirectory(dirname($filename));
-
-        return Storage::path($filename);
-    }
-
-    /**
-     * 生成标准文件名
-     * 
-     * @param string|null $extension 强制指定扩展名
-     * @return string 格式：exports/YYYYMMDD/UUID.扩展名
-     */
-    protected function generateFilename(?string $extension = null): string
-    {
-        $extension ??= $this->shouldUseCsv() ? 'csv' : 'xlsx';
-
-        return sprintf(
-            'exports/%s/%s.%s',
-            now()->format('Ymd'),
-            $this->filename ?? Str::uuid(),
-            $extension
-        );
-    }
-
-    /**
-     * 获取下载响应头
-     * 
-     * @param string $type 文件类型（csv/xlsx）
-     * @return array HTTP头配置数组
-     */
-    protected function getDownloadHeaders(string $type): array
-    {
-        return match ($type) {
-            'csv' => ['Content-Type' => 'text/csv'],
-            default => ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-        };
     }
 }
