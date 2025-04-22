@@ -231,7 +231,7 @@ abstract class Export implements FromArray, ShouldAutoSize, WithColumnWidths, Wi
     /**
      * async task
      */
-    public function run(array $params): mixed
+    public function run(array $params): string
     {
         return $this->setParams($params)->export();
     }
