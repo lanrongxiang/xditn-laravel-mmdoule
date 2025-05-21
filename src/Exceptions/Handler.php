@@ -86,7 +86,7 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $e): JsonResponse|Response
     {
         $e = match (true) {
-            $e instanceof ValidationException => new FailedException('验证错误: '.$e->getMessage()),
+            $e instanceof ValidationException => new FailedException($e->getMessage()),
             $e instanceof ThrottlesExceptions => new FailedException('请求过于频繁，请稍后再试'),
             $e instanceof AuthenticationException => new FailedException('登录失效，请重新登录'),
             $e instanceof NotFoundHttpException => new Exception(

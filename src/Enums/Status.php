@@ -6,7 +6,7 @@ enum Status: int implements Enum
 {
     case Enable = 1;
 
-    case Disable = 2;
+    case Disable = 0;
 
     /**
      * @desc name
@@ -30,7 +30,7 @@ enum Status: int implements Enum
         return match ($this) {
             Status::Enable => 1,
 
-            Status::Disable => 2,
+            Status::Disable => 0,
         };
     }
 

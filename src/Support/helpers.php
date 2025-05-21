@@ -26,11 +26,11 @@ if (! function_exists('loadCommands')) {
      *
      * @param  array|string  $paths      命令文件路径
      * @param  string  $namespace  命令类命名空间
-     * @param  string|null  $searchPath 搜索路径（可选）
+     * @param   $searchPath
      *
      * @throws ReflectionException
      */
-    function loadCommands(array|string $paths, string $namespace, string $searchPath = null): void
+    function loadCommands(array|string $paths, string $namespace,  $searchPath = null): void
     {
         $searchPath ??= dirname($paths).DIRECTORY_SEPARATOR;
         $paths = Collection::make(Arr::wrap($paths))->unique()->filter(fn ($path) => is_dir($path));
