@@ -38,10 +38,16 @@ class Query
 
             if (! File::isDirectory($sqlLogPath)) {
                 File::makeDirectory($sqlLogPath, 0777, true);
+                chmod($sqlLogPath, 0777);
             }
 
             $logFile = $sqlLogPath.date('Ymd').'.log';
 
+            // 首次创建文件时设置权限
+            if (!File::exists($logFile)) {
+                File::put($logFile, '');
+                chmod($logFile, 0666);
+            }
             File::append($logFile, static::$log);
         }
     }
