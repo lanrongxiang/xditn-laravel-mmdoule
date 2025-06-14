@@ -10,27 +10,35 @@ class BuildCommand extends XditnCommand
 
     protected $signature = 'xditn:build {--no-check}';
 
-    protected $description = '打包后台';
+    protected $description = '打包后台应用';
 
     public function handle(): void
     {
-        Artisan::call('schema:dump');
+        try {
+            Artisan::call('schema:dump');
 
-        if (file_exists($schemaSql = $this->getDumpSchemaSql())) {
-            File::put(
-                $this->btImportSql(),
-                file_get_contents($schemaSql)
-            );
+            $schemaPath = $this->getDumpSchemaPath();
+
+            if (!File::exists($schemaPath)) {
+                throw new \Exception('Schema 导出失败，文件未生成');
+            }
+
+            File::copy($schemaPath, $this->getImportPath());
+
+            $this->info('✅ 后台打包完成，SQL 文件已生成');
+
+        } catch (\Exception $e) {
+            $this->error("打包失败: " . $e->getMessage());
         }
     }
 
-    protected function getDumpSchemaSql(): string
+    protected function getDumpSchemaPath(): string
     {
-        return database_path('schema') . DIRECTORY_SEPARATOR . 'mysql-schema.sql';
+        return database_path('schema/mysql-schema.sql');
     }
 
-    protected function btImportSql(): string
+    protected function getImportPath(): string
     {
-        return base_path() . DIRECTORY_SEPARATOR . 'import.sql';
+        return base_path('import.sql');
     }
 }
