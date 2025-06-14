@@ -27,10 +27,10 @@ class Csv
      * 下载
      *
      * @param string $filename
-     * @param array|LazyCollection $data
+     * @param $data
      * @return StreamedResponse
      */
-    public function download(string $filename, array|LazyCollection $data): StreamedResponse
+    public function download(string $filename,  $data): StreamedResponse
     {
         $responseHeader = [
             'Content-Type' => 'text/csv',

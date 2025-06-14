@@ -6,7 +6,11 @@ namespace Xditn\Support\Macros;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection as LaravelCollection;
+use Illuminate\Support\LazyCollection;
+use Illuminate\Support\Str;
 use Xditn\Support\Tree;
+use Xditn\Support\Excel\Csv;
+use Xditn\Support\Excel\Export;
 
 /**
  * 集合宏扩展
@@ -58,6 +62,87 @@ class Collection
                     ? ['value' => $item[0], 'label' => $item[1]]
                     : ['value' => $key, 'label' => $item];
             })->values();
+        });
+    }
+
+    public function export(): void
+    {
+        LaravelCollection::macro(__FUNCTION__, function (array $header) {
+            $items = $this->toArray();
+            $export = new class($items, $header) extends Export
+            {
+                protected array $items;
+
+                public function __construct(array $items, array $header)
+                {
+                    $this->items = $items;
+
+                    $this->header = $header;
+                }
+
+                public function array(): array
+                {
+                    // TODO: Implement array() method.
+                    return $this->items;
+                }
+            };
+
+            return $export->export();
+        });
+    }
+
+    public function download(): void
+    {
+        LaravelCollection::macro(__FUNCTION__, function (array $header, array $fields = []) {
+            $items = $this->toArray();
+            // 自定字段重新组装数据
+            $newItems = [];
+            if (! empty($fields)) {
+                foreach ($items as $item) {
+                    $newItem = [];
+                    foreach ($fields as $field) {
+                        $newItem[] = $item[$field] ?? null;
+                    }
+                    $newItems[] = $newItem;
+                }
+            }
+            if (count($newItems)) {
+                $items = $newItems;
+            }
+
+            $export = new class($items, $header) extends Export
+            {
+                protected array $items;
+
+                public function __construct(array $items, array $header)
+                {
+                    $this->items = $items;
+
+                    $this->header = $header;
+                }
+
+                public function array(): array
+                {
+                    // TODO: Implement array() method.
+                    return $this->items;
+                }
+            };
+
+            return $export->download();
+        });
+    }
+
+    /**
+     * 下载 csv
+     */
+    public function downloadAsCsv(): void
+    {
+        LazyCollection::macro(__FUNCTION__, function (array $header, ?string $filename = null) {
+            $csv = new Csv;
+
+            $filename = $filename ?: Str::random(10).'.csv';
+
+            return $csv->header($header)->download($filename, $this);
         });
     }
 }
