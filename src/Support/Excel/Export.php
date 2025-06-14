@@ -67,7 +67,7 @@ abstract class Export implements FromArray, ShouldAutoSize, WithColumnWidths, Wi
             Excel::store($this, $file, null, $writeType);
 
             // 导出事件
-            Event::dispatch(\Catch\Events\Excel\Export::class);
+            Event::dispatch(\Xditn\Events\Excel\Export::class);
 
             return $file;
         } catch (\Exception|\Throwable $e) {
