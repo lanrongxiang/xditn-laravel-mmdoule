@@ -21,15 +21,17 @@ class Collection
     {
         $this->toOptions();
         $this->toTree();
+        $this->export();
+
+        $this->download();
+
+        $this->downloadAsCsv();
     }
 
     /**
      * 将集合转换为树形结构
      *
-     * @param  int  $pid 父级 ID
-     * @param  string  $pidField 父级字段名
-     * @param  string  $child 子节点字段名
-     * @return LaravelCollection
+     * @return void
      */
     public function toTree(): void
     {
@@ -45,7 +47,7 @@ class Collection
     /**
      * 转换集合为选项数组
      *
-     * @return LaravelCollection
+     * @return void
      */
     public function toOptions(): void
     {
@@ -65,6 +67,11 @@ class Collection
         });
     }
 
+    /**
+     * 导出数据
+     *
+     * @return void
+     */
     public function export(): void
     {
         LaravelCollection::macro(__FUNCTION__, function (array $header) {
@@ -91,6 +98,11 @@ class Collection
         });
     }
 
+    /**
+     * 根据字段导出
+     *
+     * @return void
+     */
     public function download(): void
     {
         LaravelCollection::macro(__FUNCTION__, function (array $header, array $fields = []) {
