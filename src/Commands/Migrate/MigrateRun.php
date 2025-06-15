@@ -29,6 +29,7 @@ class MigrateRun extends XditnCommand
             foreach (File::files($modulePath) as $file) {
                 $path = Str::of(MModule::getModuleRelativePath($modulePath))
                            ->remove('.')->append($file->getFilename());
+
                 Artisan::call('migrate', [
                     '--path' => $path,
                     '--force' => $this->option('force'),

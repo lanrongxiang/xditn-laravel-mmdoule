@@ -28,7 +28,7 @@ class RunCommand extends XditnCommand
         //初始化迁移位置不要更改
         $this->info('正在运行 模块初始化命令...');
         $allModules =  getSubdirectories(base_path('modules'));
-        foreach ($allModules as $name) {
+        foreach (sortArrayByPriorities(['system','permissions','user'],$allModules) as $name) {
             MModule::getModuleInstaller($name)->install();
         }
 
