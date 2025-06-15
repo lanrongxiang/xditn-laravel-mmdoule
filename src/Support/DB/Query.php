@@ -4,6 +4,7 @@ namespace Xditn\Support\DB;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 /**
  * 数据库查询日志记录类
@@ -18,15 +19,65 @@ class Query
     public static function listen(): void
     {
         DB::listen(function ($query) {
-            $sql = str_replace(
-                '?',
-                '%s',
-                sprintf('[%s] '.$query->sql.' | %s ms'.PHP_EOL, date('Y-m-d H:i'), $query->time)
+            // 获取原始SQL和绑定参数
+            $rawSql = $query->sql;
+            $bindings = $query->bindings;
+
+            $fullSql = self::safeBuildSql($rawSql, $bindings);
+
+            $logEntry = sprintf(
+                '[%s] %s | %s ms',
+                date('Y-m-d H:i'),
+                $fullSql,
+                $query->time
             );
 
-            static::$log .= vsprintf($sql, $query->bindings);
+            static::$log .= $logEntry . PHP_EOL;
         });
     }
+
+    /**
+     * 安全构建SQL语句
+     */
+    protected static function safeBuildSql(string $sql, array $bindings): string
+    {
+        // 处理数字参数
+        $numericBindings = array_filter($bindings, 'is_numeric');
+
+        // 处理字符串参数（转义特殊字符）
+        $stringBindings = array_map(function ($value) {
+            if ($value instanceof \DateTimeInterface) {
+                return DB::getPdo()->quote($value->format('Y-m-d H:i:s'));
+            }
+
+            if (is_string($value)) {
+                // 使用PDO安全引用字符串
+                return DB::getPdo()->quote($value);
+            }
+
+            if (is_object($value) && method_exists($value, '__toString')) {
+                return DB::getPdo()->quote((string)$value);
+            }
+
+            if (is_null($value)) {
+                return 'NULL';
+            }
+
+            return $value;
+        }, $bindings);
+
+        // 合并处理后的参数
+        $processedBindings = $stringBindings;
+
+        // 逐个替换占位符
+        $result = $sql;
+        foreach ($processedBindings as $binding) {
+            $result = Str::replaceFirst('?', $binding, $result);
+        }
+
+        return $result;
+    }
+
 
     /**
      * 记录查询日志
