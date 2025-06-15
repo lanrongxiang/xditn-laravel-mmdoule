@@ -5,6 +5,7 @@ namespace Xditn\Support\Module;
 use Illuminate\Console\Application;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use Xditn\Contracts\ModuleRepositoryInterface;
 use Xditn\Support\Composer;
 
@@ -41,10 +42,11 @@ abstract class Installer
      */
     protected function migrate(): void
     {
-        $command = Application::formatCommandString('xditn:migrate '.$this->info()['name']);
+        $name = Str::ucfirst(Str::lower($this->info()['name']));
+        $command = Application::formatCommandString('xditn:migrate '.$name);
         app()->runningInConsole()
             ? Process::run($command)->throw()
-            : Artisan::call('xditn:migrate', ['module' => $this->info()['name']]);
+            : Artisan::call('xditn:migrate', ['module' => $name]);
     }
 
     /**
@@ -54,10 +56,11 @@ abstract class Installer
      */
     protected function seed(): void
     {
-        $command = Application::formatCommandString('xditn:db:seed '.$this->info()['name']);
+        $name = Str::ucfirst(Str::lower($this->info()['name']));
+        $command = Application::formatCommandString('xditn:db:seed '.$name);
         app()->runningInConsole()
             ? Process::run($command)->throw()
-            : Artisan::call('xditn:db:seed', ['module' => $this->info()['name']]);
+            : Artisan::call('xditn:db:seed', ['module' => $name]);
     }
 
     /**
@@ -81,7 +84,8 @@ abstract class Installer
      */
     public function uninstall(): void
     {
-        $this->moduleRepository->delete($this->info()['name']);
+        $name = Str::ucfirst(Str::lower($this->info()['name']));
+        $this->moduleRepository->delete($name);
         $this->removePackages();
     }
 
@@ -92,11 +96,11 @@ abstract class Installer
      */
     public function install(): void
     {
-        $this->moduleRepository->create($this->info());
         $this->migrate();
         $this->seed();
         $this->requirePackages();
     }
+
 
     /**
      * 获取 Composer 实例
