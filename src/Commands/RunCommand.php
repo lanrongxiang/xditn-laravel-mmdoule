@@ -26,7 +26,7 @@ class RunCommand extends XditnCommand
         }
 
         $this->info('正在运行 模块初始化命令...');
-        $allModules =  getSubdirectories(__DIR__.'/../Base/modules/');
+        $allModules =  getSubdirectories(base_path('modules'));
         foreach ($allModules as $name) {
             MModule::getModuleInstaller($name)->uninstall();
             MModule::getModuleInstaller($name)->install();
