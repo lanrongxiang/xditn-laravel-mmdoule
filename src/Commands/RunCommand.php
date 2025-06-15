@@ -24,15 +24,16 @@ class RunCommand extends XditnCommand
         foreach ($commands as $command) {
             Process::run(Application::formatCommandString($command))->throw();
         }
+        $this->info('正在运行 laravel初始化迁移命令...');
+        Process::run(Application::formatCommandString('migrate'))->throw();
 
+        //初始化迁移位置不要更改
         $this->info('正在运行 模块初始化命令...');
         $allModules =  getSubdirectories(base_path('modules'));
         foreach ($allModules as $name) {
             MModule::getModuleInstaller($name)->install();
         }
-        $this->info('正在运行 laravel初始化命令...');
-        //初始化迁移位置不要更改
-        Process::run(Application::formatCommandString('migrate'))->throw();
+
         app(Composer::class)->dumpAutoloads();
     }
 

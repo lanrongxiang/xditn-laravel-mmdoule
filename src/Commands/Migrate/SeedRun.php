@@ -35,7 +35,6 @@ class SeedRun extends XditnCommand
         $module = $this->argument('module');
         $seederName = $this->option('seeder');
         $files = File::allFiles(MModule::getModuleSeederPath($module));
-
         // 根据 seeder 名称选择相应的填充类并执行
         foreach ($files as $file) {
             $className = pathinfo($file->getBasename(), PATHINFO_FILENAME);
