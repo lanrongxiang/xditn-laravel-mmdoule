@@ -208,12 +208,13 @@ trait BaseOperate
     /**
      * 根据ID获取单条数据
      *
-     * @param  mixed  $value
-     * @param  string|null  $field
-     * @param  array  $columns
+     * @param mixed                 $value
+     * @param mixed $field
+     * @param array                 $columns
+     *
      * @return ?Model
      */
-    public function firstBy(mixed $value, string $field = null, array $columns = ['*']): ?Model
+    public function firstBy(mixed $value, mixed  $field , array $columns = ['*']): ?Model
     {
         $field =$field??$this->getKeyName();
         $columns = $this->columnAccess ? $this->readable($columns) : $columns;
