@@ -216,7 +216,7 @@ trait BaseOperate
      */
     public function firstBy(mixed $value, mixed  $field , array $columns = ['*']): ?Model
     {
-        $field =$field??$this->getKeyName();
+        $field = $field??$this->getKeyName();
         $columns = $this->columnAccess ? $this->readable($columns) : $columns;
         $model = static::where($field, $value)->first($columns);
 

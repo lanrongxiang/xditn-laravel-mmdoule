@@ -198,15 +198,11 @@ class XditnServiceProvider extends ServiceProvider
                     $this->app->register($module['provider']);
                 }
             }
-        } else {
-            foreach ($this->app->make(ModuleRepositoryInterface::class)->getEnabled() as $module) {
-                if (class_exists($module['provider'])) {
-                    $this->app->register($module['provider']);
-                }
-            }
+
+            // 注册模块路由
+            $this->registerModuleRoutes();
         }
-        // 注册模块路由
-        $this->registerModuleRoutes();
+
     }
 
     /**
