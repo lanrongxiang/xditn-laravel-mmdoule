@@ -2,54 +2,113 @@
 
 namespace Xditn\Commands;
 
-use Illuminate\Console\Application;
-use Illuminate\Foundation\Bootstrap\LoadConfiguration;
-use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Str;
+use Illuminate\Console\Command;
 use Xditn\MModule;
 use Xditn\Support\Composer;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
+use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
+use Illuminate\Foundation\Bootstrap\LoadConfiguration;
 
-class RunCommand extends XditnCommand
+class RunCommand extends Command
 {
-    protected $signature = 'xditn:run';
+    protected $signature = 'xditn:run {--timeout=300 : 设置迁移和种子操作的超时时间}';
 
-    protected $description = 'xditn 初始化运行';
+    protected $description = 'xditn 系统初始化命令';
 
     public function handle(): void
     {
-        $this->info('正在运行 laravel初始化命令...');
-        Process::run(Application::formatCommandString('migrate'))->throw();
-        $this->info('正在运行 发布命令...');
+        $this->alert('开始执行 laravel 初始化命令...');
+
+        // 设置更长的超时时间
+        $timeout = (int)$this->option('timeout');
+        set_time_limit($timeout);
+
+        $this->callMigrate($timeout);
+        $this->executePostCommands();
+        $this->processModules();
+        $this->updateEnvAndConfig();
+        $this->callSeed($timeout);
+
+        $this->alert('系统初始化成功!');
+    }
+
+    protected function callMigrate(int $timeout): void
+    {
+        $this->info('执行数据库迁移...');
+        config(['database.migrations.timeout' => $timeout]);
+
+        Artisan::call('migrate', [
+            '--force' => true,
+            '--step' => true
+        ]);
+
+        $this->info(Artisan::output());
+    }
+
+    protected function executePostCommands(): void
+    {
+        $this->info('执行发布命令...');
+
         $commands = [
-            'key:generate',
-            'vendor:publish --tag=xditn-config',
-            'vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"',
+            ['command' => 'key:generate', '--force' => true],
+            ['command' => 'vendor:publish', '--tag' => 'xditn-config', '--force' => true],
+            ['command' => 'vendor:publish', '--provider' => 'Laravel\Sanctum\SanctumServiceProvider', '--force' => true]
         ];
-        $this->info('正在运行 模块初始化命令...');
+
+        $this->info('执行模块初始化命令...');
         foreach ($commands as $command) {
-            Process::run(Application::formatCommandString($command))->throw();
+            Artisan::call($command['command'], array_except($command, 'command'));
+            $this->info(Artisan::output());
         }
+    }
+
+    protected function processModules(): void
+    {
+        $this->info('处理模块安装...');
+
         $allModules = getSubdirectories(base_path('modules'));
-        $this->info('正在运行 模块初迁移命令...');
-        foreach (sortArrayByPriorities(['system', 'permissions', 'user'], $allModules) as $name) {
-            MModule::getModuleInstaller($name)->install();
-        }
+        $this->withProgressBar(
+            sortArrayByPriorities(['system', 'permissions', 'user'], $allModules),
+            function ($name) {
+                MModule::getModuleInstaller($name)->install();
+            }
+        );
+
         app(Composer::class)->dumpAutoloads();
-        $this->info('正在更新.env文件 ...');
+    }
+
+    protected function updateEnvAndConfig(): void
+    {
+        $this->info('更新环境配置...');
+
         $this->updateEnvFile();
-        $this->info('正在运行 数据迁移命令...');
-        Process::run(Application::formatCommandString('db:seed'))->throw();
-        $this->info('系统初始化成功 ...');
+        $this->info('清除配置缓存...');
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+    }
+
+    protected function callSeed(int $timeout): void
+    {
+        $this->info('执行数据库种子...');
+        config(['database.seeds.timeout' => $timeout]);
+
+        Artisan::call('db:seed', [
+            '--force' => true,
+            '--class' => 'Database\\Seeders\\DatabaseSeeder'
+        ]);
+
+        $this->info(Artisan::output());
     }
 
     private function updateEnvFile(): void
     {
         $envPath = app()->environmentFilePath();
         $content = File::get($envPath);
+        $lines = explode("\n", $content);
+        $existingKeys = [];
 
-        // 动态生成随机凭证
         $envUpdates = [
             'XDITN_MODULE_AUTOLOAD' => true,
             'BROADCAST_DRIVER'      => 'reverb',
@@ -62,20 +121,16 @@ class RunCommand extends XditnCommand
             'REVERB_SERVER_PORT'    => '30008',
         ];
 
-        $lines = explode("\n", $content);
-        $existingKeys = [];
+        foreach ($lines as $i => $line) {
+            [$key] = explode('=', $line);
+            $key = trim($key);
 
-        // 更新现有键值
-        foreach ($lines as &$line) {
-            foreach ($envUpdates as $key => $value) {
-                if (str_contains($line, $key) && !str_contains($line, 'VITE_')) {
-                    $line = $this->resetEnvValue($line, $value);
-                    $existingKeys[$key] = true;
-                }
+            if (array_key_exists($key, $envUpdates)) {
+                $lines[$i] = $this->updateEnvLine($line, $envUpdates[$key]);
+                $existingKeys[$key] = true;
             }
         }
 
-        // 添加缺失的键值
         foreach ($envUpdates as $key => $value) {
             if (!isset($existingKeys[$key])) {
                 $lines[] = "{$key}={$value}";
@@ -83,25 +138,17 @@ class RunCommand extends XditnCommand
         }
 
         File::put($envPath, implode("\n", $lines));
-        app()->bootstrapWith([LoadEnvironmentVariables::class, LoadConfiguration::class]);
+        $this->reloadConfig();
     }
 
-    /**
-     * 重置环境变量值
-     *
-     * @param string $originValue
-     * @param string $newValue
-     *
-     * @return string
-     */
-    protected function resetEnvValue(string $originValue, string $newValue): string
+    private function updateEnvLine(string $line, $value): string
     {
-        if (Str::contains($originValue, '=')) {
-            $originValue    = explode('=', $originValue);
-            $originValue[1] = $newValue;
-            return implode('=', $originValue);
-        }
-        return $originValue;
+        return preg_replace('/=.*$/', '='.$value, $line);
     }
 
+    private function reloadConfig(): void
+    {
+        $app = app();
+        $app->bootstrapWith([LoadEnvironmentVariables::class, LoadConfiguration::class]);
+    }
 }
