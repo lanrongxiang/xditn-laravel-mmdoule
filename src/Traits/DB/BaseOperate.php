@@ -214,7 +214,7 @@ trait BaseOperate
      *
      * @return ?Model
      */
-    public function firstBy(mixed $value, mixed  $field , array $columns = ['*']): ?Model
+    public function firstBy(mixed $value, mixed  $field= null , array $columns = ['*']): ?Model
     {
         $field = $field??$this->getKeyName();
         $columns = $this->columnAccess ? $this->readable($columns) : $columns;
