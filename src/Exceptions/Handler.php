@@ -88,7 +88,7 @@ class Handler extends ExceptionHandler
         $e = match (true) {
             $e instanceof ValidationException => new FailedException($e->getMessage()),
             $e instanceof ThrottlesExceptions => new FailedException('请求过于频繁，请稍后再试'),
-            $e instanceof AuthenticationException => new FailedException('登录失效，请重新登录'),
+            $e instanceof AuthenticationException => new TokenExpiredException('登录失效，请重新登录'),
             $e instanceof NotFoundHttpException => new Exception(
                 '路由 ['.$request->getRequestUri().'] 未找到或未注册，请检查路由是否正确'
             ),
