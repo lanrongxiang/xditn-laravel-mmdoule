@@ -34,6 +34,11 @@ trait DateformatTrait
             return $date;
         }
 
-        return Carbon::instance($date)->setTimezone(config('app.timezone'))->format($this->timeFormat);
+        // 获取时间戳值
+        $timestamp = $date->getTimestamp();
+
+        // 从时间戳创建 Carbon 实例并设置时区
+        return Carbon::createFromTimestamp($timestamp, config('app.timezone'))
+                     ->format($this->timeFormat);
     }
 }
