@@ -15,7 +15,8 @@
   "require-dev": {
     "laravel/framework": "^11.0",
     "laravel/pint": "dev-main",
-    "knuckleswtf/scribe": "dev-master"
+    "knuckleswtf/scribe": "dev-master",
+    "laravel/boost": "^1.1"
   },
   "license": "MIT",
   "autoload": {
