@@ -41,4 +41,18 @@ trait DateformatTrait
         return Carbon::createFromTimestamp($timestamp, config('app.timezone'))
                      ->format($this->timeFormat);
     }
+
+    /**
+     * @return string[]
+     */
+    public function dateFormatCasts(): array
+    {
+        $format = config('catch.model.date_format', 'Y-m-d H:i:s');
+
+        return [
+            'created_at' => "datetime:{$format}",
+
+            'updated_at' => "datetime:{$format}",
+        ];
+    }
 }

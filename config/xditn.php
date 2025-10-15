@@ -1,5 +1,11 @@
 <?php
 
+use Modules\Member\Models\Members;
+use Modules\User\Models\User;
+use Xditn\Listeners\RequestHandledListener;
+use Xditn\Middleware\AuthMiddleware;
+use Xditn\Middleware\JsonResponseMiddleware;
+
 return [
     // 超级管理员 ID 配置
     'super_admin' => 1,
@@ -42,11 +48,11 @@ return [
     'always_json' => true,
     // 响应配置
     'response' => [
-        'always_json' => \Xditn\Middleware\JsonResponseMiddleware::class,  // 始终使用 JSON 响应中间件
-        'request_handled_listener' => \Xditn\Listeners\RequestHandledListener::class,  // 请求处理事件监听器
+        'always_json' => JsonResponseMiddleware::class,  // 始终使用 JSON 响应中间件
+        'request_handled_listener' => RequestHandledListener::class,  // 请求处理事件监听器
     ],
     // 数据库 SQL 日志监听
-    'listen_db_log' => true,
+    'listen_db_log' => env('APP_DEBUG', true),
     // 管理员身份验证模型配置
     'auth_model' => modules\User\Models\User::class,
     'auth' => 'admin',
@@ -57,7 +63,6 @@ return [
                 'driver' => 'sanctum',
                 'provider' => 'admin_users',
             ],
-
             // 前台 app 接口认证
             'app' => [
                 'driver' => 'sanctum',
@@ -68,13 +73,12 @@ return [
             // 后台用户模型
             'admin_users' => [
                 'driver' => 'eloquent',
-                'model' => \Modules\User\Models\User::class,
+                'model' => User::class,
             ],
-
             // 前台用户模型
             'app_users' => [
                 'driver' => 'eloquent',
-                'model' => \Modules\Member\Models\Members::class,
+                'model' => Members::class,
             ],
         ],
     ],
@@ -82,8 +86,8 @@ return [
     'route' => [
         'prefix' => 'api',  // 路由前缀
         'middlewares' => [  // 路由中间件
-            \Xditn\Middleware\AuthMiddleware::class,
-            \Xditn\Middleware\JsonResponseMiddleware::class,
+            AuthMiddleware::class,
+            JsonResponseMiddleware::class,
         ],
     ],
     // 视图路径配置
@@ -98,4 +102,49 @@ return [
   |--------------------------------------------------------------------------
   */
     'system_api_log' => env('XDITN_SYSTEM_API_LOG', false),
+    /*
+|--------------------------------------------------------------------------
+| 图片处理
+|
+| 默认使用 GD
+|--------------------------------------------------------------------------
+*/
+    'image' => [
+        'driver' => env('CATCH_IMAGE_DRIVER', 'gd'),
+        'options' => [],
+        /**
+         * 默认读取磁盘
+         */
+        'read_from' => env('CATCH_IMAGE_READ_FROM', 'uploads'),
+    ],
+    /*
+    |--------------------------------------------------------------------------
+    | 后台缓存统一管理
+    |
+    | 配置后台缓存前缀，便于清理后台管理的缓存
+    |--------------------------------------------------------------------------
+    */
+    'admin_cache_key' => env('CATCH_ADMIN_CACHE_KEY', 'admin_dashboard_'),
+    /*
+    |--------------------------------------------------------------------------
+    | 模型相关配置
+    |
+    | 配置模型的配置
+    |--------------------------------------------------------------------------
+    */
+    'model' => [
+        // created_at & updated_at format
+        'date_format' => 'Y-m-d H:i:s',
+    ],
+    /*
+    |--------------------------------------------------------------------------
+    | Excel 配置
+    |--------------------------------------------------------------------------
+    */
+    'excel' => [
+        /**
+         * 导出路径, 相对于 storage 目录得相对路径
+         */
+        'export_path' => 'excel/export',
+    ],
 ];

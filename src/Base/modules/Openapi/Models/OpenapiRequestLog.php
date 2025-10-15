@@ -21,7 +21,9 @@ use Xditn\Traits\DB\WithAttributes;
  */
 class OpenapiRequestLog extends Model
 {
-    use BaseOperate, scopeTrait, WithAttributes;
+    use BaseOperate;
+    use scopeTrait;
+    use WithAttributes;
 
     protected $table = 'openapi_request_log';
 

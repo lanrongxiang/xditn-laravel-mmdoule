@@ -149,27 +149,6 @@ class InstallCommand extends XditnCommand
         }
     }
 
-    /**
-     * 获取用户选择的模块的安装器
-     *
-     * @param  array  $modules              所有模块信息
-     * @param  array  $selectedModulesTitle 用户选择的模块标题
-     * @return array 选择的模块安装器
-     */
-    protected function getSelectedInstallers(array $modules, array $selectedModulesTitle): array
-    {
-        $selectedInstallers = [];
-        foreach ($selectedModulesTitle as $title) {
-            foreach ($modules as $module) {
-                if ($module === $title) {
-                    $selectedInstallers[] = MModule::getModuleInstaller($module['name']);
-                    break;
-                }
-            }
-        }
-
-        return $selectedInstallers;
-    }
 
     /**
      * 安装模块
@@ -474,7 +453,7 @@ class InstallCommand extends XditnCommand
      */
     private function deleteInstalledModules(): void
     {
-        Module::all()->each(fn ($module) => Module::delete($module['name']));
+        collect(Module::all())->each(fn ($module) => Module::delete($module['name']));
         collect($this->defaultModules)->each(fn ($module) => MModule::deleteModulePath($module));
     }
 }

@@ -21,6 +21,7 @@ class Builder
         $this->whereLike();
         $this->quickSearch();
         $this->tree();
+        $this->restores();
     }
 
     /**

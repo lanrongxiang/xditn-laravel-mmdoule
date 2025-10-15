@@ -2,6 +2,7 @@
 
 namespace Xditn\Support;
 
+use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Cache;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -22,61 +23,32 @@ class Admin
      */
     public function auth(): User
     {
-        [$tokenId, $token] = $this->parseBearerToken();
-        $userCacheKey = $this->getUserCacheKey($tokenId);
-        // 这里返回可能是 bool ，也可能是 personal token 模型
-        if (! $personalToken = $this->verifyPersonalToken($tokenId, $token, $userCacheKey)) {
+        try {
+            [$tokenId, $token] = $this->parseBearerToken();
+            $userCacheKey = $this->getUserCacheKey($tokenId);
+            // 这里返回可能是 bool ，也可能是 personal token 模型
+            if (! $personalToken = $this->verifyPersonalToken($tokenId, $token, $userCacheKey)) {
+                throw new AuthenticationException();
+            }
+            // 如果缓存中没有缓存用户，就从数据库中获取并缓存
+            $user = Cache::get($userCacheKey);
+            if (! $user && $personalToken instanceof PersonalAccessToken) {
+                $user = $personalToken->tokenable;
+                Cache::put($userCacheKey, $user, now()->addHours(2));
+            }
+            if (! $user instanceof User) {
+                throw new AuthenticationException();
+            }
+            // 更新最近使用
+            $this->updatePersonalTokenLastUsed($tokenId);
+            // 单例
+            $this->user = $user;
+
+            return $user;
+        } catch (TokenExpiredException $e) {
+            $this->logout();
             throw new AuthenticationException();
         }
-        // 如果缓存中没有缓存用户，就从数据库中获取并缓存
-        $user = Cache::get($userCacheKey);
-        if (! $user && $personalToken instanceof PersonalAccessToken) {
-            $user = $personalToken->tokenable;
-            // 这里需要永久存储，等待 token id 主动删除
-            Cache::forever($userCacheKey, $user);
-        }
-        if (! $user instanceof User) {
-            throw new AuthenticationException();
-        }
-        // 更新最近使用
-        $this->updatePersonalTokenLastUsed($tokenId);
-        // 单例
-        $this->user = $user;
-
-        return $user;
-    }
-
-    /**
-     * 获取当前登录用户
-     *
-     * @return User|null
-     */
-    public function currentLoginUser(): ?User
-    {
-        return $this->user;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function id(): ?int
-    {
-        return $this->currentLoginUser()?->id;
-    }
-
-    /**
-     * @return true
-     *
-     * @throws AuthenticationException
-     */
-    public function logout(): true
-    {
-        $this->clearUserPersonalToken();
-        // 删除 token
-        [$tokenId, $token] = $this->parseBearerToken();
-        $this->currentLoginUser()?->tokens()->where('id', $tokenId)->delete();
-
-        return true;
     }
 
     /**
@@ -100,77 +72,6 @@ class Admin
     protected function getUserCacheKey($tokenId): string
     {
         return 'user_personal_token_'.$tokenId;
-    }
-
-    /**
-     * 用户令牌 KEY
-     *
-     * @param $tokenId
-     * @return string
-     */
-    protected function getPersonalTokenKey($tokenId): string
-    {
-        return 'personal_token_'.$tokenId;
-    }
-
-    /**
-     * token 集合 key
-     *
-     * @return string
-     */
-    protected function getTokenIdsKey(): string
-    {
-        return 'personal_token_ids';
-    }
-
-    /**
-     * 更新个人 token 最近使用使用
-     *
-     * @param $tokenId
-     * @return void
-     */
-    protected function updatePersonalTokenLastUsed($tokenId): void
-    {
-        $personalTokenLastUsedKey = 'personal_token_last_used_'.$tokenId;
-        // 标记十分钟更新一次，不需要每次请求都去更新
-        try {
-            if (! Cache::has($personalTokenLastUsedKey)) {
-                app(Sanctum::$personalAccessTokenModel)->where('id', $tokenId)->update(['last_used_at' => now()]);
-                Cache::put($personalTokenLastUsedKey, true, now()->addMinutes(10));
-            }
-        } catch (\Exception $e) {
-        }
-    }
-
-    /**
-     * 清理个人令牌
-     *
-     * @param  null  $tokenId
-     * @return void
-     *
-     * @throws AuthenticationException
-     */
-    public function clearUserPersonalToken($tokenId = null): void
-    {
-        if (! $tokenId) {
-            [$tokenId, $token] = $this->parseBearerToken();
-        }
-        Cache::delete($this->getUserCacheKey($tokenId));
-        Cache::delete($this->getPersonalTokenKey($tokenId));
-    }
-
-    /**
-     * @return void
-     *
-     * @throws AuthenticationException
-     */
-    public function clearAllCachedUsers(): void
-    {
-        foreach (Cache::get($this->getTokenIdsKey()) as $tokenId) {
-            $this->clearUserPersonalToken($tokenId);
-        }
-        // 最后清除 token id 集合缓存
-        Cache::delete($this->getTokenIdsKey());
     }
 
     /**
@@ -204,6 +105,17 @@ class Admin
     }
 
     /**
+     * 用户令牌 KEY
+     *
+     * @param $tokenId
+     * @return string
+     */
+    protected function getPersonalTokenKey($tokenId): string
+    {
+        return 'personal_token_'.$tokenId;
+    }
+
+    /**
      * 获取个人令牌
      *
      * @param $tokenKey
@@ -212,37 +124,6 @@ class Admin
     protected function getPersonalToken($tokenKey): mixed
     {
         return Cache::get($tokenKey);
-    }
-
-    /**
-     * 设置个人 token
-     *
-     * @param $tokenKey
-     * @param $personalToken
-     * @return true
-     */
-    protected function setPersonalToken($tokenKey, $personalToken): true
-    {
-        if (! $personalToken->expires_at) {
-            Cache::forever($tokenKey, $personalToken->token);
-        } else {
-            Cache::put($tokenKey, $personalToken->token, $personalToken->expires_at);
-        }
-
-        return true;
-    }
-
-    /**
-     * get token ids
-     *
-     * @param $tokenId
-     * @return void
-     */
-    protected function tokenIds($tokenId): void
-    {
-        $tokenIds = Cache::get($this->getTokenIdsKey(), []);
-        $tokenIds[] = $tokenId;
-        Cache::forever($this->getTokenIdsKey(), array_unique($tokenIds));
     }
 
     /**
@@ -281,5 +162,129 @@ class Admin
         }
 
         return true;
+    }
+
+    /**
+     * 设置个人 token
+     *
+     * @param $tokenKey
+     * @param $personalToken
+     * @return true
+     */
+    protected function setPersonalToken($tokenKey, $personalToken): true
+    {
+        if (! $personalToken->expires_at) {
+            Cache::forever($tokenKey, $personalToken->token);
+        } else {
+            Cache::put($tokenKey, $personalToken->token, $personalToken->expires_at);
+        }
+
+        return true;
+    }
+
+    /**
+     * get token ids
+     *
+     * @param $tokenId
+     * @return void
+     */
+    protected function tokenIds($tokenId): void
+    {
+        $tokenIds = Cache::get($this->getTokenIdsKey(), []);
+        $tokenIds[] = $tokenId;
+        Cache::forever($this->getTokenIdsKey(), array_unique($tokenIds));
+    }
+
+    /**
+     * token 集合 key
+     *
+     * @return string
+     */
+    protected function getTokenIdsKey(): string
+    {
+        return 'personal_token_ids';
+    }
+
+    /**
+     * 更新个人 token 最近使用使用
+     *
+     * @param $tokenId
+     * @return void
+     */
+    protected function updatePersonalTokenLastUsed($tokenId): void
+    {
+        $personalTokenLastUsedKey = 'personal_token_last_used_'.$tokenId;
+        // 标记十分钟更新一次，不需要每次请求都去更新
+        try {
+            if (! Cache::has($personalTokenLastUsedKey)) {
+                app(Sanctum::$personalAccessTokenModel)->where('id', $tokenId)->update(['last_used_at' => now()]);
+                Cache::put($personalTokenLastUsedKey, true, now()->addMinutes(10));
+            }
+        } catch (Exception $e) {
+        }
+    }
+
+    /**
+     * @return true
+     *
+     * @throws AuthenticationException
+     */
+    public function logout(): true
+    {
+        $this->clearUserPersonalToken();
+        // 删除 token
+        [$tokenId, $token] = $this->parseBearerToken();
+        app(Sanctum::$personalAccessTokenModel)->where('id', $tokenId)->delete();
+        //        $this->currentLoginUser()?->tokens()->where('id', $tokenId)->delete();
+        return true;
+    }
+
+    /**
+     * 清理个人令牌
+     *
+     * @param  null  $tokenId
+     * @return void
+     *
+     * @throws AuthenticationException
+     */
+    public function clearUserPersonalToken($tokenId = null): void
+    {
+        if (! $tokenId) {
+            [$tokenId, $token] = $this->parseBearerToken();
+        }
+        Cache::delete($this->getUserCacheKey($tokenId));
+        Cache::delete($this->getPersonalTokenKey($tokenId));
+    }
+
+    /**
+     * @return int|null
+     */
+    public function id(): ?int
+    {
+        return $this->currentLoginUser()?->id;
+    }
+
+    /**
+     * 获取当前登录用户
+     *
+     * @return User|null
+     */
+    public function currentLoginUser(): ?User
+    {
+        return $this->user;
+    }
+
+    /**
+     * @return void
+     *
+     * @throws AuthenticationException
+     */
+    public function clearAllCachedUsers(): void
+    {
+        foreach (Cache::get($this->getTokenIdsKey()) as $tokenId) {
+            $this->clearUserPersonalToken($tokenId);
+        }
+        // 最后清除 token id 集合缓存
+        Cache::delete($this->getTokenIdsKey());
     }
 }

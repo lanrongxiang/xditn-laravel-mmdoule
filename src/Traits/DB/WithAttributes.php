@@ -78,4 +78,11 @@ trait WithAttributes
      * @var bool
      */
     protected bool $isFillCreatorId = true;
+
+    /**
+     * 与父级数据同步更新的字段
+     *
+     * @var array|string[]
+     */
+    protected array $syncParentFields = ['status'];
 }

@@ -26,11 +26,11 @@ if (! function_exists('loadCommands')) {
      *
      * @param  array|string  $paths      命令文件路径
      * @param  string  $namespace  命令类命名空间
-     * @param   $searchPath
+     * @param    $searchPath
      *
      * @throws ReflectionException
      */
-    function loadCommands(array|string $paths, string $namespace,  $searchPath = null): void
+    function loadCommands(array|string $paths, string $namespace, $searchPath = null): void
     {
         $searchPath ??= dirname($paths).DIRECTORY_SEPARATOR;
         $paths = Collection::make(Arr::wrap($paths))->unique()->filter(fn ($path) => is_dir($path));
@@ -282,6 +282,55 @@ if (! function_exists('getSubdirectory')) {
 
 }
 
+
+
+/**
+ * 后台缓存方法，可以集中管理后台缓存
+ */
+if (! function_exists('admin_cache')) {
+    function admin_cache(string $key, \Closure|\DateTimeInterface|\DateInterval|int|null $ttl, Closure $callback)
+    {
+        $cacheKey = config('catch.admin_cache_key').$key;
+
+        if ($ttl === null || $ttl === 0) {
+            return Cache::forever($cacheKey, $callback());
+        }
+
+        return Cache::remember($key, $ttl, $callback);
+    }
+}
+
+/**
+ * 后台缓存方法，可以集中管理后台缓存
+ */
+if (! function_exists('admin_cache_get')) {
+    function admin_cache_get(string $key, mixed $default = null)
+    {
+        return Cache::get(config('catch.admin_cache_key').$key, $default);
+    }
+}
+
+/**
+ * 后台缓存方法，可以集中管理后台缓存
+ */
+if (! function_exists('admin_cache_has')) {
+    function admin_cache_has(string $key): bool
+    {
+        return Cache::has(config('catch.admin_cache_key').$key);
+    }
+}
+
+/**
+ * 后台缓存删除方法，可以集中管理后台缓存
+ */
+if (! function_exists('admin_cache_delete')) {
+    function admin_cache_delete(string $key): bool
+    {
+        return Cache::forget(config('catch.admin_cache_key').$key);
+    }
+}
+
+
 /**
  * 根据传入的优先元素排序数组，将指定元素放在数组的开头，并保持其他元素的原顺序。
  *
@@ -289,7 +338,7 @@ if (! function_exists('getSubdirectory')) {
  * @param  array  $items       原始的元素数组。
  * @return array             排序后的数组。
  */
-if (! function_exists('getSubdirectory')) {
+if (! function_exists('sortArrayByPriorities')) {
     function sortArrayByPriorities(array $priorities, array $items): array
     {
         // 将所有优先元素和原始元素都转换为小写，用于无视大小写的对比

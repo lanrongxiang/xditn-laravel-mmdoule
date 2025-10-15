@@ -2,11 +2,11 @@
 
 namespace Xditn\Support;
 
-use Xditn\MModule;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Xditn\MModule;
 
 class Decomposer
 {
@@ -247,7 +247,7 @@ class Decomposer
             $bytes /= 1024;
         }
 
-        return round($bytes, 2).' '.$units[$i];
+        return round($bytes, 2, PHP_ROUND_HALF_UP).' '.$units[$i];
     }
 
     /**

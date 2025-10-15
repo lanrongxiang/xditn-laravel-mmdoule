@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Xditn\Traits\DB;
 
 use Closure;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -28,13 +29,18 @@ trait BaseOperate
     /**
      * 获取列表数据
      *
-     * @return mixed
+     * 返回类型说明：
+     * - LengthAwarePaginator: 启用分页时（$this->isPaginate = true）
+     * - Collection: 禁用分页时（$this->isPaginate = false）
+     * - Collection: 树形结构时（$this->asTree = true）
+     *
+     * @return LengthAwarePaginator|Collection
      */
-    public function getList(): mixed
+    public function getList(): LengthAwarePaginator|Collection
     {
         $fields = property_exists($this, 'fields') ? $this->fields : ['*'];
         //字段访问,获取可读字段
-        if ($this->columnAccess) {
+        if ($this->columnAccess && method_exists($this, 'readable')) {
             $fields = $this->readable($fields);
         }
 
@@ -69,37 +75,57 @@ trait BaseOperate
     }
 
     /**
-     * 保存数据
+     * 保存数据（更新或创建）
+     *
+     *   Laravel 的 save() 方法，但会自动处理关联关系
+     * 注意：与 Laravel 原生 save() 的区别：
+     * - Laravel save() 返回 boolean
+     * - 本方法返回 Model 实例（符合链式调用习惯）
      *
      * @param  array  $data
+     * @return ?Model
+     *
+     * @throws FailedException
      */
-    public function storeBy(array $data)
+    public function storeBy(array $data): ?Model
     {
-        if ($this->fill($this->filterData($data))->save()) {
-            if ($this->getKey()) {
-                $this->createRelations($data);
-            }
-
-            return $this->getKey();
+        if (! $this->fill($this->filterData($data))->save()) {
+            throw new FailedException('数据保存失败');
         }
 
-        return false;
+        // 处理关联关系
+        if ($this->getKey()) {
+            $this->createRelations($data);
+        }
+
+        return $this;
     }
 
     /**
-     * 创建数据
+     * 创建新数据
+     *
+     *  Laravel 的 create() 方法
+     * Laravel create() 返回 Model 实例，本方法保持一致
      *
      * @param  array  $data
-     * @return mixed
+     * @return ?Model
+     *
+     * @throws FailedException
      */
-    public function createBy(array $data): mixed
+    public function createBy(array $data): ?Model
     {
         $model = $this->newInstance();
-        if ($model->fill($this->filterData($data))->save()) {
-            return $model->getKey();
+
+        if (! $model->fill($this->filterData($data))->save()) {
+            throw new FailedException('数据创建失败');
         }
 
-        return false;
+        // 处理关联关系
+        if ($model->getKey()) {
+            $model->createRelations($data);
+        }
+
+        return $model;
     }
 
     /**
@@ -107,11 +133,18 @@ trait BaseOperate
      *
      * @param  mixed  $id
      * @param  array  $data
-     * @return mixed
+     * @return bool
+     *
+     * @throws FailedException
      */
-    public function updateBy(mixed $id, array $data): mixed
+    public function updateBy(mixed $id, array $data): bool
     {
         $model = $this->where($this->getKeyName(), $id)->first();
+
+        if (! $model) {
+            throw new FailedException('数据不存在，无法更新');
+        }
+
         $updated = $model->fill($this->filterData($data, true))->save();
 
         if ($updated) {
@@ -124,28 +157,100 @@ trait BaseOperate
     /**
      * 批量更新数据
      *
-     * @param  string  $field
-     * @param  array  $condition
-     * @param  array  $data
+     * 使用 Laravel Query Builder 替代原生 SQL，防止 SQL 注入
+     *
+     * @param  string  $field 更新条件字段
+     * @param  array  $condition 条件值数组
+     * @param  array  $data 要更新的数据 ['field' => [values]]
      * @return bool
+     *
+     * @throws FailedException
      */
     public function batchUpdate(string $field, array $condition, array $data): bool
     {
+        if (empty($condition) || empty($data)) {
+            throw new FailedException('批量更新参数不能为空');
+        }
+
         try {
-            $sql = 'UPDATE `'.withTablePrefix($this->getTable()).'` SET ';
+            DB::transaction(function () use ($field, $condition, $data) {
+                foreach ($condition as $index => $conditionValue) {
+                    $updateData = [];
+
+                    // 组装当前记录的更新数据
+                    foreach ($data as $key => $values) {
+                        if (isset($values[$index])) {
+                            $updateData[$key] = $values[$index];
+                        }
+                    }
+
+                    if (! empty($updateData)) {
+                        // 使用 Query Builder，自动处理参数绑定，防止 SQL 注入
+                        $this->where($field, $conditionValue)->update($updateData);
+                    }
+                }
+            });
+
+            return true;
+        } catch (\Throwable $exception) {
+            throw new FailedException('批量更新错误: '.$exception->getMessage());
+        }
+    }
+
+    /**
+     * 批量更新数据（CASE WHEN 优化版本，性能更好）
+     *
+     * 仅在数据量大且更新字段少时使用
+     * 使用参数绑定防止 SQL 注入
+     *
+     * @param  string  $field 更新条件字段
+     * @param  array  $condition 条件值数组
+     * @param  array  $data 要更新的数据 ['field' => [values]]
+     * @return bool
+     *
+     * @throws FailedException
+     */
+    public function batchUpdateOptimized(string $field, array $condition, array $data): bool
+    {
+        if (empty($condition) || empty($data)) {
+            throw new FailedException('批量更新参数不能为空');
+        }
+
+        try {
+            $cases = [];
+            $bindings = [];
+            $ids = array_map('intval', $condition); // 强制转换为整数，增加安全性
 
             foreach ($data as $key => $values) {
-                $sql .= sprintf('`%s` = CASE ', $key);
-                foreach ($values as $index => $value) {
-                    $sql .= sprintf('WHEN %s = %s THEN "%s" ', $field, $condition[$index], $value);
+                $caseSql = 'CASE ';
+
+                foreach ($condition as $index => $id) {
+                    $caseSql .= "WHEN `{$field}` = ? THEN ? ";
+                    $bindings[] = $id;
+                    $bindings[] = $values[$index];
                 }
-                $sql .= 'ELSE '.$key.' END, ';
+
+                $caseSql .= "ELSE `{$key}` END";
+                $cases[] = "`{$key}` = {$caseSql}";
             }
 
-            $where = ' WHERE '.$field.' IN ('.implode(',', $condition).')';
-            $sql = rtrim($sql, ', ').$where;
+            if (empty($cases)) {
+                return true;
+            }
 
-            return DB::statement($sql);
+            // 添加 WHERE 条件的绑定
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $bindings = array_merge($bindings, $ids);
+
+            $sql = sprintf(
+                'UPDATE `%s` SET %s WHERE `%s` IN (%s)',
+                $this->getTable(),
+                implode(', ', $cases),
+                $field,
+                $placeholders
+            );
+
+            return DB::update($sql, $bindings) > 0;
         } catch (\Throwable $exception) {
             throw new FailedException('批量更新错误: '.$exception->getMessage());
         }
@@ -167,13 +272,13 @@ trait BaseOperate
             }
         }
 
-        if ($this->columnAccess) {
+        if ($this->columnAccess && method_exists($this, 'writable')) {
             $keys = $this->writable(array_keys($data));
             $data = array_filter($data, fn ($key) => in_array($key, $keys), ARRAY_FILTER_USE_KEY);
         }
 
         if (! $this->timestamps) {
-           $data = $this->handleTimestamps($data, $isUpdate);
+            $data = $this->handleTimestamps($data, $isUpdate);
         }
 
         if ($this->isFillCreatorId && in_array($this->getCreatorIdColumn(), $this->getFillable())) {
@@ -208,16 +313,15 @@ trait BaseOperate
     /**
      * 根据ID获取单条数据
      *
-     * @param mixed                 $value
-     * @param mixed $field
-     * @param array                 $columns
-     *
+     * @param  mixed  $value
+     * @param  mixed  $field
+     * @param  array  $columns
      * @return ?Model
      */
-    public function firstBy(mixed $value, mixed  $field= null , array $columns = ['*']): ?Model
+    public function firstBy(mixed $value, mixed $field = null, array $columns = ['*']): ?Model
     {
-        $field = $field??$this->getKeyName();
-        $columns = $this->columnAccess ? $this->readable($columns) : $columns;
+        $field = $field ?? $this->getKeyName();
+        $columns = ($this->columnAccess && method_exists($this, 'readable')) ? $this->readable($columns) : $columns;
         $model = static::where($field, $value)->first($columns);
 
         if ($this->afterFirstBy) {
@@ -233,11 +337,18 @@ trait BaseOperate
      * @param  mixed  $id
      * @param  bool  $force
      * @param  bool  $softForce
-     * @return ?bool
+     * @return bool
+     *
+     * @throws FailedException
      */
-    public function deleteBy(mixed $id, bool $force = false, bool $softForce = false): ?bool
+    public function deleteBy(mixed $id, bool $force = false, bool $softForce = false): bool
     {
         $model = static::find($id);
+
+        if (! $model) {
+            throw new FailedException('数据不存在，无法删除');
+        }
+
         if (in_array($this->getParentIdColumn(), $this->getFillable()) &&
             $this->where($this->getParentIdColumn(), $model->id)->first()) {
             throw new FailedException('请先删除子级');
@@ -249,27 +360,37 @@ trait BaseOperate
             $this->deleteRelations($model);
         }
 
-        return $deleted;
+        return (bool) $deleted;
     }
 
     /**
      * 删除软删除数据
      *
      * @param  mixed  $id 数据ID
-     * @return mixed
+     * @return bool
+     *
+     * @throws FailedException
      */
-    public function deleteTrash(mixed $id): mixed
+    public function deleteTrash(mixed $id): bool
     {
-        return static::onlyTrashed()->find($id)->forceDelete();
+        $model = static::onlyTrashed()->find($id);
+
+        if (! $model) {
+            throw new FailedException('回收站中未找到该数据');
+        }
+
+        return (bool) $model->forceDelete();
     }
 
     /**
      * 批量删除数据
      *
-     * @param  array|string  $ids 数据ID集合
-     * @param  bool  $force 是否强制删除
+     * @param  array|string  $ids      数据ID集合
+     * @param  bool  $force    是否强制删除
      * @param  Closure|null  $callback 删除后的回调函数
      * @return bool
+     *
+     * @throws \Throwable
      */
     public function deletesBy(array|string $ids, bool $force = false, ?Closure $callback = null): bool
     {
@@ -298,21 +419,23 @@ trait BaseOperate
      * 恢复软删除的数据
      *
      * @param  array|string  $ids 数据ID集合
-     * @return true
+     * @return bool
      */
-    public function restoreBy(array|string $ids): true
+    public function restoreBy(array|string $ids): bool
     {
         $ids = is_string($ids) ? explode(',', $ids) : $ids;
 
         if (count($ids) === 1) {
-            return $this->onlyTrashed()->find($ids[0])->restore();
+            $model = $this->onlyTrashed()->find($ids[0]);
+
+            return $model ? $model->restore() : false;
         }
 
-        $this->whereIn($this->getKeyName(), $ids)
+        $count = $this->whereIn($this->getKeyName(), $ids)
              ->onlyTrashed()
              ->update([$this->getDeletedAtColumn() => 0]);
 
-        return true;
+        return $count > 0;
     }
 
     /**
@@ -322,16 +445,21 @@ trait BaseOperate
      * @param  string  $field 状态字段
      * @return bool
      */
-    public function toggleBy($id, string $field = 'status'): bool
+    public function toggleBy(mixed $id, string $field = 'status'): bool
     {
         $model = $this->firstBy($id);
+
+        if (! $model) {
+            throw new FailedException('数据不存在');
+        }
+
         $newStatus = $model->getAttribute($field) == Status::Enable->value()
             ? Status::Disable->value()
             : Status::Enable->value();
 
-        $model->setAttribute($field, $newStatus)->save();
+        $model->setAttribute($field, $newStatus);
 
-        if (in_array($this->getParentIdColumn(), $this->getFillable())) {
+        if ($model->save() && in_array($this->getParentIdColumn(), $this->getFillable()) && in_array($field, $this->syncParentFields)) {
             $this->updateChildren($id, $field, $newStatus);
         }
 
@@ -615,6 +743,23 @@ trait BaseOperate
     public function fillCreatorId(bool $is = true): static
     {
         $this->isFillCreatorId = $is;
+
+        return $this;
+    }
+
+    /**
+     * 设置需要同步的字段
+     *
+     * @param  array|null  $fields
+     * @return $this
+     */
+    public function setSyncParentFields(?array $fields = []): static
+    {
+        if (is_null($fields)) {
+            $this->syncParentFields = [];
+        } else {
+            $this->syncParentFields = array_merge($this->syncParentFields, $fields);
+        }
 
         return $this;
     }

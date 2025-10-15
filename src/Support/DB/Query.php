@@ -32,7 +32,7 @@ class Query
                 $query->time
             );
 
-            static::$log .= $logEntry . PHP_EOL;
+            static::$log .= $logEntry.PHP_EOL;
         });
     }
 
@@ -56,7 +56,7 @@ class Query
             }
 
             if (is_object($value) && method_exists($value, '__toString')) {
-                return DB::getPdo()->quote((string)$value);
+                return DB::getPdo()->quote((string) $value);
             }
 
             if (is_null($value)) {
@@ -78,7 +78,6 @@ class Query
         return $result;
     }
 
-
     /**
      * 记录查询日志
      */
@@ -95,7 +94,7 @@ class Query
             $logFile = $sqlLogPath.date('Ymd').'.log';
 
             // 首次创建文件时设置权限
-            if (!File::exists($logFile)) {
+            if (! File::exists($logFile)) {
                 File::put($logFile, '');
                 chmod($logFile, 0666);
             }

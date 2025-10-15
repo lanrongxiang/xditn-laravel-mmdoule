@@ -24,7 +24,7 @@ class RunCommand extends XditnCommand
         $this->info('正在运行 执行数据库迁移...');
         Artisan::call('migrate', [
             '--force' => true,
-            '--step'  => true
+            '--step' => true,
         ]);
         $this->info(Artisan::output());
         $this->info('正在运行 发布命令...');
@@ -47,7 +47,7 @@ class RunCommand extends XditnCommand
         $this->info('正在运行 执行数据库种子...');
         Artisan::call('db:seed', [
             '--force' => true,
-            '--class' => 'Database\\Seeders\\DatabaseSeeder'
+            '--class' => 'Database\\Seeders\\DatabaseSeeder',
         ]);
         $this->info(Artisan::output());
         $this->info('系统初始化成功 ...');
@@ -61,14 +61,14 @@ class RunCommand extends XditnCommand
         // 动态生成随机凭证
         $envUpdates = [
             'XDITN_MODULE_AUTOLOAD' => true,
-            'BROADCAST_DRIVER'      => 'reverb',
-            'REVERB_APP_ID'         => Str::random(7),
-            'REVERB_APP_KEY'        => Str::random(20),
-            'REVERB_APP_SECRET'     => Str::random(40),
-            'REVERB_SCHEME'         => 'http',
-            'REVERB_HOST'           => gethostbyname(gethostname()) ?? '127.0.0.1',
-            'REVERB_PORT'           => '30008',
-            'REVERB_SERVER_PORT'    => '30008',
+            'BROADCAST_DRIVER' => 'reverb',
+            'REVERB_APP_ID' => Str::random(7),
+            'REVERB_APP_KEY' => Str::random(20),
+            'REVERB_APP_SECRET' => Str::random(40),
+            'REVERB_SCHEME' => 'http',
+            'REVERB_HOST' => gethostbyname(gethostname()) ?? '127.0.0.1',
+            'REVERB_PORT' => '30008',
+            'REVERB_SERVER_PORT' => '30008',
         ];
 
         $lines = explode("\n", $content);
@@ -77,7 +77,7 @@ class RunCommand extends XditnCommand
         // 更新现有键值
         foreach ($lines as &$line) {
             foreach ($envUpdates as $key => $value) {
-                if (str_contains($line, $key) && !str_contains($line, 'VITE_')) {
+                if (str_contains($line, $key) && ! str_contains($line, 'VITE_')) {
                     $line = $this->resetEnvValue($line, $value);
                     $existingKeys[$key] = true;
                 }
@@ -86,7 +86,7 @@ class RunCommand extends XditnCommand
 
         // 添加缺失的键值
         foreach ($envUpdates as $key => $value) {
-            if (!isset($existingKeys[$key])) {
+            if (! isset($existingKeys[$key])) {
                 $lines[] = "{$key}={$value}";
             }
         }
@@ -98,19 +98,19 @@ class RunCommand extends XditnCommand
     /**
      * 重置环境变量值
      *
-     * @param string $originValue
-     * @param string $newValue
-     *
+     * @param  string  $originValue
+     * @param  string  $newValue
      * @return string
      */
     protected function resetEnvValue(string $originValue, string $newValue): string
     {
         if (Str::contains($originValue, '=')) {
-            $originValue    = explode('=', $originValue);
+            $originValue = explode('=', $originValue);
             $originValue[1] = $newValue;
+
             return implode('=', $originValue);
         }
+
         return $originValue;
     }
-
 }

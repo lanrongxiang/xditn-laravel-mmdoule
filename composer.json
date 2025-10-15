@@ -10,7 +10,9 @@
     "laravel/sanctum": "4.x-dev",
     "w7corp/easywechat": "^6.15.0",
     "yansongda/pay": "v3.7.10",
-    "maatwebsite/excel": "3.1.x-dev"
+    "maatwebsite/excel": "3.1.x-dev",
+    "nette/php-generator": "^4.2@dev",
+    "intervention/image-laravel": "dev-develop"
   },
   "require-dev": {
     "laravel/framework": "^11.0",
