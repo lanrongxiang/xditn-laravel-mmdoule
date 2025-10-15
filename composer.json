@@ -7,18 +7,15 @@
     "php": "^8.2",
     "ext-pdo": "*",
     "ext-zip": "*",
-    "laravel/sanctum": "4.x-dev",
-    "w7corp/easywechat": "^6.15.0",
+    "laravel/sanctum": "^v4.0.8",
+    "w7corp/easywechat": "^6.17.5",
     "yansongda/pay": "v3.7.10",
-    "maatwebsite/excel": "3.1.x-dev",
-    "nette/php-generator": "^4.2@dev",
-    "intervention/image-laravel": "dev-develop"
+    "maatwebsite/excel": "^3.1.64",
+    "nette/php-generator": "^v4.1.8",
+    "intervention/image-laravel": "^1.5"
   },
   "require-dev": {
-    "laravel/framework": "^11.0",
-    "laravel/pint": "dev-main",
-    "knuckleswtf/scribe": "dev-master",
-    "laravel/boost": "^1.1"
+    "laravel/framework": "^12.0"
   },
   "license": "MIT",
   "autoload": {
