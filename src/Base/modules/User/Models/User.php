@@ -118,7 +118,7 @@ class User extends Model implements AuthenticatableContract
     /**
      * update
      */
-    public function updateBy($id, array $data): mixed
+    public function updateBy($id, array $data): bool
     {
         if (empty($data['password'])) {
             unset($data['password']);
@@ -135,9 +135,9 @@ class User extends Model implements AuthenticatableContract
      * @param bool $force
      * @param bool $softForce
      *
-     * @return bool|null
+     * @return bool
      */
-    public function deleteBy($id, bool $force = false, bool $softForce = false): ?bool
+    public function deleteBy($id, bool $force = false, bool $softForce = false): bool
     {
        return  $this->transaction(function () use ($id) {
             /* @var  User $user */

@@ -40,7 +40,7 @@ class Schemas extends XditnModel
     /**
      * @throws Exception
      */
-    public function storeBy(array $data): bool
+    public function storeBy(array $data): ?Model
     {
         // 从已有 schema 中选择
         if (isset($data['schema_name'])) {

@@ -217,7 +217,7 @@ class Permissions extends Model
      *
      * @return mixed
      */
-    public function storeBy(array $data): mixed
+    public function storeBy(array $data): ?Model
     {
         return DB::transaction(function () use ($data)
         {
@@ -295,7 +295,7 @@ class Permissions extends Model
     /**
      * update data
      */
-    public function updateBy($id, array $data): mixed
+    public function updateBy($id, array $data): bool
     {
         if (!MenuType::Top->asset($data['type']) && !$data['parent_id']) {
             throw new FailedException('请选择父级菜单');

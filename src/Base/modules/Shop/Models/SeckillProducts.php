@@ -43,7 +43,7 @@ class SeckillProducts extends Model
     /**
      * store by
      */
-    public function storeBy(array $params): bool
+    public function storeBy(array $params): ?Model
     {
         $productIds = $params['product_id'];
         unset($params['product_id']);

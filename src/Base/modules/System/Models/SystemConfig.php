@@ -26,10 +26,11 @@ class SystemConfig extends Model
     /**
      * 保存配置
      *
-     * @param  array  $data
-     * @return mixed
+     * @param array $data
+     *
+     * @return Model|null
      */
-    public function storeBy(array $data): mixed
+    public function storeBy(array $data): ?Model
     {
         foreach ($data as $k => $value) {
             $config = $this->where('key', $k)->first();
