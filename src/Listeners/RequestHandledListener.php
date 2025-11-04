@@ -30,27 +30,14 @@ class RequestHandledListener
                 $event->response = $response();
             } elseif ($response instanceof JsonResponse) {
                 $exception = $response->exception;
-                if ($response->getStatusCode() == SymfonyResponse::HTTP_OK && ! $exception) {
-                    // 获取原始数据（true 参数确保返回数组而不是对象）
-                    $rawData = $response->getData(true);
-                    if (!$this->isAlreadyFormatted($rawData)) {
-                        $response->setData($this->formatData($rawData));
-                    }
+                // 处理所有 2xx 成功状态码（200-299）
+                if ($response->isSuccessful() && ! $exception) {
+                    $response->setData($this->formatData($response->getData()));
                 }
             }
         }
     }
 
-    /**
-     * 检查数据是否已经被格式化
-     *
-     * @param  mixed  $data
-     * @return bool
-     */
-    protected function isAlreadyFormatted(mixed $data): bool
-    {
-        return is_array($data) && isset($data['code']) && isset($data['message']);
-    }
 
     /**
      * 格式化响应数据

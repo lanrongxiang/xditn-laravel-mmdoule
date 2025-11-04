@@ -124,7 +124,6 @@ class XditnServiceProvider extends ServiceProvider
      */
     protected function registerExceptionHandler(): void
     {
-
         if ($this->app['config']->get('xditn.always_json')) {
             $this->app->singleton(ExceptionHandler::class, function () {
                 return new Handler((fn () => Container::getInstance()));
