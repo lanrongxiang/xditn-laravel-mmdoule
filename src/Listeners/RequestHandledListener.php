@@ -31,10 +31,25 @@ class RequestHandledListener
             } elseif ($response instanceof JsonResponse) {
                 $exception = $response->exception;
                 if ($response->getStatusCode() == SymfonyResponse::HTTP_OK && ! $exception) {
-                    $response->setData($this->formatData($response->getData()));
+                    // 获取原始数据（true 参数确保返回数组而不是对象）
+                    $rawData = $response->getData(true);
+                    if (!$this->isAlreadyFormatted($rawData)) {
+                        $response->setData($this->formatData($rawData));
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * 检查数据是否已经被格式化
+     *
+     * @param  mixed  $data
+     * @return bool
+     */
+    protected function isAlreadyFormatted(mixed $data): bool
+    {
+        return is_array($data) && isset($data['code']) && isset($data['message']);
     }
 
     /**
