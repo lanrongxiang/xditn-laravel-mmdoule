@@ -154,9 +154,6 @@ class Admin
      */
     protected function isPersonalTokenExpired($personalToken): bool
     {
-        if (! $personalToken->expires_at) {
-            return false;
-        }
         if (! $personalToken->expires_at->isPast()) {
             return false;
         }
