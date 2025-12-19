@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 use Modules\User\Models\User as User;
+use Psr\SimpleCache\InvalidArgumentException;
 use Xditn\Exceptions\TokenExpiredException;
 
 class Admin
@@ -32,7 +33,7 @@ class Admin
             }
             // 如果缓存中没有缓存用户，就从数据库中获取并缓存
             $user = Cache::get($userCacheKey);
-            if (! $user && $personalToken instanceof PersonalAccessToken) {
+            if (! $user) {
                 $user = $personalToken->tokenable;
                 Cache::put($userCacheKey, $user, now()->addHours(2));
             }
@@ -78,17 +79,24 @@ class Admin
      * @param    $tokenId
      * @param  string  $token
      * @param  string  $userCacheKey
-     * @return mixed
      *
-     * @throws AuthenticationException
+     * @return PersonalAccessToken
+     *
+     * @throws AuthenticationException|InvalidArgumentException
      */
-    protected function verifyPersonalToken($tokenId, string $token, string $userCacheKey): mixed
+    protected function verifyPersonalToken($tokenId, string $token, string $userCacheKey): PersonalAccessToken
     {
         $personalTokenKey = $this->getPersonalTokenKey($tokenId);
+        // 如果缓存中已经有 token，先校验 token 是否一致，再从数据库获取最新的个人令牌模型
         if ($accessToken = $this->getPersonalToken($personalTokenKey)) {
             // 这里还需要校验保存的 token 和 头信息 token，防止串改
-            return hash_equals($accessToken, hash('sha256', $token));
+            if (! hash_equals($accessToken, hash('sha256', $token))) {
+                throw new AuthenticationException();
+            }
+
+            return $this->validPersonalToken($tokenId);
         }
+
         // 如果缓存的 token 不存在，那么需要先通过数据库校验
         $personalToken = $this->validPersonalToken($tokenId);
         if (! hash_equals($personalToken->token, hash('sha256', $token))) {
