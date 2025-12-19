@@ -139,9 +139,6 @@ class Admin
         if (! $personalToken) {
             throw new AuthenticationException();
         }
-        if ($this->isPersonalTokenExpired($personalToken)) {
-            throw new TokenExpiredException();
-        }
 
         return $personalToken;
     }
