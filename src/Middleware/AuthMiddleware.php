@@ -18,7 +18,7 @@ class AuthMiddleware
         try {
             $user = Admin::auth();
         } catch (AuthenticationException $e) {
-            throw new FailedException('身份认证过期或失败', Code::LOST_LOGIN);
+            throw new FailedException('身份认证过期或失败'.$e->getMessage(), Code::LOST_LOGIN);
         } catch (TokenExpiredException $e) {
             throw new FailedException('Token 已过期', Code::LOST_LOGIN);
         }
