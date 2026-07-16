@@ -10,7 +10,6 @@ use Illuminate\Support\Collection;
 use Xditn\Contracts\ModuleRepositoryInterface;
 use Xditn\Enums\Status;
 use Xditn\Exceptions\FailedException;
-use Xditn\MModule;
 
 /**
  * DatabaseDriver
@@ -47,12 +46,16 @@ class DatabaseDriver implements ModuleRepositoryInterface
     {
         $this->hasSameModule($module);
 
-        return $this->model->save([
+        return $this->model->newQuery()->insert([
             'title' => $module['title'],
+            'name' => $module['name'],
             'path' => $module['path'],
-            'description' => $module['desc'],
-            'keywords' => $module['keywords'],
-            'provider' => sprintf('\\%s%s', MModule::getModuleNamespace($module['name']), ucfirst($module['name']).'ServiceProvider'),
+            'description' => $module['description'] ?? $module['desc'] ?? '',
+            'keywords' => $module['keywords'] ?? '',
+            'version' => $module['version'] ?? '1.0.0',
+            'status' => Status::Enable->value(),
+            'created_at' => time(),
+            'updated_at' => time(),
         ]);
     }
 

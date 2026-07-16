@@ -5,6 +5,8 @@ namespace Xditn\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Throwable;
+use Xditn\MModule;
+use Xditn\Support\Module\ModuleRepository;
 
 class DefaultInstallCommand extends XditnCommand
 {
@@ -87,6 +89,12 @@ class DefaultInstallCommand extends XditnCommand
 
                 $seeded[] = $module;
                 $this->info("[{$module}] 填充成功。");
+
+                $moduleRepository = app(ModuleRepository::class);
+                if (! $moduleRepository->enabled($module)) {
+                    $moduleRepository->create(MModule::getModuleInstaller($module)->getInfo());
+                    $this->info("[{$module}] 模块注册成功。");
+                }
             }
         } catch (Throwable $e) {
             $this->newLine();

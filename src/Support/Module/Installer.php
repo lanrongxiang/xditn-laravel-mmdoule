@@ -99,6 +99,10 @@ abstract class Installer
         $this->migrate();
         $this->seed();
         $this->requirePackages();
+
+        if (! $this->moduleRepository->enabled($this->info()['name'])) {
+            $this->moduleRepository->create($this->info());
+        }
     }
 
 
