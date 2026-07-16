@@ -166,7 +166,6 @@ class InstallCommand extends XditnCommand
             'key:generate',
             'vendor:publish --tag=xditn-config --force',
             'vendor:publish --tag=xditn-module --force',
-            'vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"',
         ];
 
         foreach ($commands as $command) {
