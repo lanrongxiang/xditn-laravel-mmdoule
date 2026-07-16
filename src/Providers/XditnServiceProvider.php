@@ -9,6 +9,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Routing\ResourceRegistrar;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use ReflectionException;
 use Xditn\Contracts\ModuleRepositoryInterface;
@@ -113,8 +114,11 @@ class XditnServiceProvider extends ServiceProvider
      */
     protected function registerEvents(): void
     {
-        // 监听 HTTP 请求处理完成事件
-        Event::listen(RequestHandled::class, config('xditn.response.request_handled_listener'));
+        $listener = config('xditn.response.request_handled_listener');
+
+        if ($listener) {
+            Event::listen(RequestHandled::class, $listener);
+        }
     }
 
     /**
@@ -161,8 +165,8 @@ class XditnServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes(
                 [
-                    dirname(__DIR__, 2).'/database/migrations/2022_11_14_034127_module.php' => database_path(
-                        'migrations/2022_11_14_034127_module.php'
+                    dirname(__DIR__, 2).'/database/migrations/2024_10_25_034127_module.php' => database_path(
+                        'migrations/2024_10_25_034127_module.php'
                     ),
                 ],
                 'xditn-module'

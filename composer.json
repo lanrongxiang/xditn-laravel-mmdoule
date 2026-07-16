@@ -23,12 +23,8 @@
       "src/Support/helpers.php"
     ],
     "psr-4": {
-      "Xditn\\": "src/",
-      "modules\\": "src/Base/modules"
-    },
-    "exclude-from-classmap": [
-      "src/Base/modules/*"
-    ]
+      "Xditn\\": "src/"
+    }
   },
   "authors": [
     {

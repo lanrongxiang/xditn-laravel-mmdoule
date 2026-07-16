@@ -14,7 +14,7 @@ return new class() extends Migration
     public function up()
     {
         //
-        Schema::create(config('xditn.module.table_name'), function (Blueprint $table) {
+        Schema::create(config('xditn.module.driver.table_name', 'admin_modules'), function (Blueprint $table) {
             $table->increments('id');
 
             $table->string('title')->comment('模块标题');
@@ -45,6 +45,6 @@ return new class() extends Migration
     public function down()
     {
         //
-        Schema::dropIfExists(config('xditn.module.table_name'));
+        Schema::dropIfExists(config('xditn.module.driver.table_name', 'admin_modules'));
     }
 };
