@@ -83,11 +83,11 @@ trait BaseOperate
      * - 本方法返回 Model 实例（符合链式调用习惯）
      *
      * @param  array  $data
-     * @return ?Model
+     * @return mixed
      *
      * @throws FailedException
      */
-    public function storeBy(array $data): ?Model
+    public function storeBy(array $data): mixed
     {
         if (! $this->fill($this->filterData($data))->save()) {
             throw new FailedException('数据保存失败');

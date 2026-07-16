@@ -34,7 +34,7 @@ class Zipper
      *
      * @param  Filesystem|null  $fs 文件系统实例
      */
-    public function __construct(Filesystem $fs = null)
+    public function __construct(?Filesystem $fs = null)
     {
         $this->file = $fs ?: new Filesystem();
     }
@@ -382,7 +382,7 @@ class Zipper
      * @param  string|null  $regexFilter 正则表达式用于过滤文件
      * @return array 文件列表
      */
-    public function listFiles(string $regexFilter = null): array
+    public function listFiles(?string $regexFilter = null): array
     {
         $filesList = [];
         $filter = $regexFilter ? function ($file) use (&$filesList, $regexFilter) {
@@ -459,7 +459,7 @@ class Zipper
      * @param  string  $pathToAdd 文件路径
      * @param  string|null  $fileName  文件名称（可选）
      */
-    private function addFile(string $pathToAdd, string $fileName = null): void
+    private function addFile(string $pathToAdd, ?string $fileName = null): void
     {
         $fileName = $fileName ?: basename($pathToAdd);
         $this->repository->addFile($pathToAdd, $this->getInternalPath().$fileName);
