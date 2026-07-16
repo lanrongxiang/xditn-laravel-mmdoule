@@ -19,6 +19,10 @@ use Xditn\Exceptions\FailedException;
 use Xditn\MModule;
 use Xditn\Support\Composer;
 
+/**
+ * @note 模块表迁移发布后需清理历史错误命名文件，避免与 2024_10_25_034127_module 冲突
+ */
+
 class InstallCommand extends XditnCommand
 {
     protected $signature = 'xditn:install {--prod}';
@@ -147,26 +151,47 @@ class InstallCommand extends XditnCommand
         }
     }
 
+    /**
+     * 历史错误命名的模块表迁移。
+     */
+    protected array $legacyModuleMigrations = [
+        '2022_11_14_034127_module.php',
+    ];
+
     private function runPublishCommands(): void
     {
         $this->info('正在运行发布命令...');
 
         $commands = [
             'key:generate',
-            'vendor:publish --tag=xditn-config',
-            'vendor:publish --tag=xditn-module',
+            'vendor:publish --tag=xditn-config --force',
+            'vendor:publish --tag=xditn-module --force',
             'vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"',
-            'migrate --force',
         ];
 
         foreach ($commands as $command) {
             Process::run(Application::formatCommandString($command))->throw();
         }
 
-        if (! empty(config('xditn.module.default', []))) {
-            $this->call('xditn:default:install', [
-                '--force' => true,
-            ]);
+        $this->removeLegacyModuleMigrations();
+
+        // 宿主迁移 + 默认模块安装（DefaultInstallCommand 会再次强制同步迁移并先跑宿主 migrate）
+        $this->call('xditn:default:install', [
+            '--force' => true,
+        ]);
+    }
+
+    /**
+     * 删除旧命名迁移，防止与新文件同时 create 同一张表。
+     */
+    protected function removeLegacyModuleMigrations(): void
+    {
+        foreach ($this->legacyModuleMigrations as $filename) {
+            $path = database_path('migrations/'.$filename);
+            if (File::exists($path)) {
+                File::delete($path);
+                $this->warn("已移除冲突的旧迁移文件: {$filename}");
+            }
         }
     }
 
