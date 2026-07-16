@@ -23,11 +23,11 @@ class DefaultInstallCommand extends XditnCommand
         $seeded = [];
 
         try {
-            if (! $this->publishHostModuleMigration()) {
+            if (! $this->publishHostModuleMigration() || ! $this->publishSanctumMigrations()) {
                 return Command::FAILURE;
             }
 
-            $this->info('正在迁移宿主项目 database/migrations...');
+            $this->info('正在迁移宿主项目 database/migrations（包含 Sanctum 令牌表）...');
             $exitCode = $this->call('migrate', [
                 '--force' => $force,
             ]);
@@ -136,6 +136,26 @@ class DefaultInstallCommand extends XditnCommand
         }
 
         $this->info('模块表迁移已更新: 2024_10_25_034127_module.php');
+
+        return true;
+    }
+
+    protected function publishSanctumMigrations(): bool
+    {
+        $this->info('正在同步 Sanctum 令牌表迁移到宿主项目...');
+
+        $exitCode = $this->call('vendor:publish', [
+            '--tag' => 'sanctum-migrations',
+            '--force' => true,
+        ]);
+
+        if ($exitCode !== Command::SUCCESS) {
+            $this->error('发布 Sanctum 令牌表迁移失败。');
+
+            return false;
+        }
+
+        $this->info('Sanctum 令牌表迁移已同步。');
 
         return true;
     }
