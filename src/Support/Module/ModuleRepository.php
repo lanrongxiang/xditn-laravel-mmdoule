@@ -37,7 +37,7 @@ class ModuleRepository
      * @param  array  $search 搜索条件
      * @return Collection 模块集合
      */
-    public function all(array $search): Collection
+    public function all(array $search = []): Collection
     {
         return $this->moduleRepository->all($search);
     }

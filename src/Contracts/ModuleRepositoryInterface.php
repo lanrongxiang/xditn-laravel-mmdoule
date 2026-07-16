@@ -20,7 +20,7 @@ interface ModuleRepositoryInterface
      * @param  array  $search 搜索条件
      * @return Collection 模块列表
      */
-    public function all(array $search): Collection;
+    public function all(array $search = []): Collection;
 
     /**
      * 创建新模块

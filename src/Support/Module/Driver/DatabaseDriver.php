@@ -30,7 +30,7 @@ class DatabaseDriver implements ModuleRepositoryInterface
      * @param  array  $search
      * @return Collection
      */
-    public function all(array $search): Collection
+    public function all(array $search = []): Collection
     {
         return $this->model::query()
                            ->when($search['title'] ?? false, fn ($query) => $query->where('title', 'like', '%'.$search['title'].'%'))
