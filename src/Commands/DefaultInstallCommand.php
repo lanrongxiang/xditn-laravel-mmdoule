@@ -12,9 +12,6 @@ class DefaultInstallCommand extends XditnCommand
 
     protected $description = '先迁移宿主项目，再按配置顺序迁移并填充默认模块';
 
-    /**
-     * 历史错误命名的模块表迁移，发布新文件后需清理，避免重复建表。
-     */
     protected array $legacyModuleMigrations = [
         '2022_11_14_034127_module.php',
     ];
@@ -22,14 +19,14 @@ class DefaultInstallCommand extends XditnCommand
     public function handle(): int
     {
         $force = (bool) $this->option('force');
+        $migrated = [];
+        $seeded = [];
 
         try {
-            // 1. 强制发布脚手架模块表迁移到宿主 database/migrations
             if (! $this->publishHostModuleMigration()) {
                 return Command::FAILURE;
             }
 
-            // 2. 先跑宿主项目迁移（含 admin_modules 等），避免模块迁移依赖冲突
             $this->info('正在迁移宿主项目 database/migrations...');
             $exitCode = $this->call('migrate', [
                 '--force' => $force,
@@ -40,6 +37,7 @@ class DefaultInstallCommand extends XditnCommand
 
                 return Command::FAILURE;
             }
+            $this->info('宿主项目迁移完成。');
 
             $modules = collect(config('xditn.module.default', []))
                 ->filter(fn ($module) => is_string($module) && $module !== '')
@@ -49,52 +47,70 @@ class DefaultInstallCommand extends XditnCommand
 
             if ($modules->isEmpty()) {
                 $this->warn('未配置默认模块（xditn.module.default），已跳过模块迁移与填充。');
+                $this->info('安装流程结束。');
 
                 return Command::SUCCESS;
             }
 
-            // 3. 再迁移默认模块
+            $this->info('待处理默认模块: '.$modules->implode(', '));
+
             foreach ($modules as $module) {
-                $this->info("正在迁移默认模块 [{$module}]...");
+                $this->newLine();
+                $this->info("[{$module}] 正在迁移...");
                 $exitCode = $this->call('xditn:migrate', [
                     'module' => $module,
                     '--force' => $force,
                 ]);
 
                 if ($exitCode !== Command::SUCCESS) {
-                    $this->error("默认模块 [{$module}] 迁移失败。");
+                    $this->error("[{$module}] 迁移失败，已中止。");
 
                     return Command::FAILURE;
                 }
+
+                $migrated[] = $module;
+                $this->info("[{$module}] 迁移成功。");
             }
 
-            // 4. 填充默认模块数据
             foreach ($modules as $module) {
-                $this->info("正在填充默认模块 [{$module}]...");
+                $this->newLine();
+                $this->info("[{$module}] 正在填充数据...");
                 $exitCode = $this->call('xditn:db:seed', [
                     'module' => $module,
                 ]);
 
                 if ($exitCode !== Command::SUCCESS) {
-                    $this->error("默认模块 [{$module}] 数据填充失败。");
+                    $this->error("[{$module}] 数据填充失败，已中止。");
 
                     return Command::FAILURE;
                 }
+
+                $seeded[] = $module;
+                $this->info("[{$module}] 填充成功。");
             }
         } catch (Throwable $e) {
-            $this->error($e->getMessage());
+            $this->newLine();
+            $this->error('安装中断: '.$e->getMessage());
+            if ($migrated !== []) {
+                $this->warn('已完成迁移的模块: '.implode(', ', $migrated));
+            }
+            if ($seeded !== []) {
+                $this->warn('已完成填充的模块: '.implode(', ', $seeded));
+            }
 
             return Command::FAILURE;
         }
 
-        $this->info('宿主迁移与默认模块安装执行完成。');
+        $this->newLine();
+        $this->info('========================================');
+        $this->info('全部完成');
+        $this->info('已迁移模块: '.($migrated ? implode(', ', $migrated) : '(无)'));
+        $this->info('已填充模块: '.($seeded ? implode(', ', $seeded) : '(无)'));
+        $this->info('========================================');
 
         return Command::SUCCESS;
     }
 
-    /**
-     * 将包内模块表迁移强制同步到宿主项目，并清理旧命名文件。
-     */
     protected function publishHostModuleMigration(): bool
     {
         $this->info('正在同步 xditn 模块表迁移到宿主项目...');
@@ -124,9 +140,6 @@ class DefaultInstallCommand extends XditnCommand
         return true;
     }
 
-    /**
-     * 删除旧命名迁移，防止与新文件同时 create 同一张表。
-     */
     protected function removeLegacyModuleMigrations(): void
     {
         foreach ($this->legacyModuleMigrations as $filename) {

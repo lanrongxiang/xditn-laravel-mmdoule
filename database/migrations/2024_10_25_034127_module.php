@@ -13,7 +13,7 @@ return new class() extends Migration
     {
         $table = config('xditn.module.driver.table_name', 'admin_modules');
 
-        // 兼容宿主项目旧迁移名，避免重复建表冲突
+        // 兼容宿主项目旧迁移名 2022_11_14_034127_module，避免重复建表冲突
         if (Schema::hasTable($table)) {
             return;
         }
