@@ -1,21 +1,18 @@
 {
-  "version": "1.0.0",
   "name": "xditn/laravel-mmodule",
   "description": "laravel多模块启动脚本",
   "type": "library",
   "require": {
-    "php": "^8.2",
+    "php": "^8.3",
     "ext-pdo": "*",
     "ext-zip": "*",
+    "laravel/framework": "^13.0",
     "laravel/sanctum": "^v4.0.8",
     "w7corp/easywechat": "^6.17.5",
     "yansongda/pay": "^3.7",
     "maatwebsite/excel": "^3.1.64",
     "nette/php-generator": "^v4.1.8",
     "intervention/image-laravel": "^1.5"
-  },
-  "require-dev": {
-    "laravel/framework": "^12.0"
   },
   "license": "MIT",
   "autoload": {

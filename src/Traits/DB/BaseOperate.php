@@ -58,13 +58,13 @@ trait BaseOperate
             $builder->orderBy($this->aliasField($this->sortField), $this->getDefaultSortOrder());
         }
         //动态排序
-        $dynamicSortField = Request::get($this->dynamicQuerySortField);
+        $dynamicSortField = Request::input($this->dynamicQuerySortField);
         if ($dynamicSortField && $dynamicSortField != $this->sortField) {
-            $builder->orderBy($this->aliasField($dynamicSortField), Request::get($this->dynamicQuerySortOrder, 'asc'));
+            $builder->orderBy($this->aliasField($dynamicSortField), Request::input($this->dynamicQuerySortOrder, 'asc'));
         }
         $builder->orderByDesc($this->aliasField($this->getKeyName()));
         //分页
-        $limit = Request::get('limit', $this->perPage);
+        $limit = Request::input('limit', $this->perPage);
 
         // 如果设置 asTree 属性为 true，将会返回树形结构
         return $this->isUseTrashed()
@@ -541,7 +541,7 @@ trait BaseOperate
      */
     protected function isUseTrashed(): bool
     {
-        return Request::get('trashed') && in_array($this->getDeletedAtColumn(), $this->getFillable());
+        return Request::input('trashed') && in_array($this->getDeletedAtColumn(), $this->getFillable());
     }
 
     /**

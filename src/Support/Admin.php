@@ -31,13 +31,16 @@ class Admin
             if (! $personalToken = $this->verifyPersonalToken($tokenId, $token, $userCacheKey)) {
                 throw new AuthenticationException();
             }
-            // 如果缓存中没有缓存用户，就从数据库中获取并缓存
-            $user = Cache::get($userCacheKey);
+            $cachedUserId = Cache::get($userCacheKey);
+            $user = is_numeric($cachedUserId) ? User::query()->find($cachedUserId) : null;
             if (! $user) {
                 $user = $personalToken->tokenable;
-                Cache::put($userCacheKey, $user, now()->addHours(2));
+                if ($user instanceof User) {
+                    Cache::put($userCacheKey, $user->getKey(), now()->addHours(2));
+                }
             }
             if (! $user instanceof User) {
+                Cache::delete($userCacheKey);
                 throw new AuthenticationException();
             }
             // 更新最近使用
@@ -60,11 +63,16 @@ class Admin
     protected function parseBearerToken(): array
     {
         $bearerToken = request()->bearerToken();
-        if (! is_null($bearerToken) && ! str_contains($bearerToken, '|')) {
+        if (! is_string($bearerToken) || ! str_contains($bearerToken, '|')) {
             throw new AuthenticationException();
         }
 
-        return explode('|', $bearerToken, 2);
+        [$tokenId, $token] = explode('|', $bearerToken, 2);
+        if ($tokenId === '' || $token === '') {
+            throw new AuthenticationException();
+        }
+
+        return [$tokenId, $token];
     }
 
     /**
@@ -144,7 +152,7 @@ class Admin
     {
         // 获取 person token 模型
         $personalToken = Sanctum::$personalAccessTokenModel::find($tokenId);
-        if (! $personalToken) {
+        if (! $personalToken || $this->isPersonalTokenExpired($personalToken)) {
             throw new AuthenticationException();
         }
 
