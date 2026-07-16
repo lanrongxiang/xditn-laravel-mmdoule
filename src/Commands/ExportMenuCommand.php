@@ -2,125 +2,151 @@
 
 namespace Xditn\Commands;
 
+use BackedEnum;
+use DateTimeInterface;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Illuminate\Support\Str;
 use Xditn\Base\XditnModel;
 use Xditn\MModule;
 
 /**
- * 导出菜单命令类
- *
- * 此命令用于将模块的菜单数据导出为 Seeder 文件。
+ * 将权限菜单按模块导出到各自的 Seeder。
  */
 class ExportMenuCommand extends XditnCommand
 {
-    /**
-     * 命令签名和选项
-     *
-     * @var string
-     */
-    protected $signature = 'xditn:export:menu {--p : 是否使用树形结构}';
+    protected $signature = 'xditn:export:menu
+                            {modules?* : 仅导出指定模块，不传则导出全部模块菜单}';
 
-    /**
-     * 命令描述
-     *
-     * @var string
-     */
-    protected $description = '导出指定模块的菜单数据';
+    protected $description = '一键导出全部模块菜单到对应模块的 Seeder';
 
-    /**
-     * 初始化命令
-     *
-     * @param  InputInterface  $input
-     * @param  OutputInterface  $output
-     * @return void
-     */
-    protected function initialize(InputInterface $input, OutputInterface $output): void
+    public function handle(): int
     {
-        // 初始化逻辑可以在这里添加
+        $requestedModules = collect($this->argument('modules'))
+            ->map(fn (string $module) => strtolower($module))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $availableModules = $this->createModel()
+            ->newQuery()
+            ->whereNotNull('module')
+            ->where('module', '<>', '')
+            ->distinct()
+            ->orderBy('module')
+            ->pluck('module')
+            ->map(fn (string $module) => strtolower($module));
+
+        $modules = $requestedModules->isNotEmpty() ? $requestedModules : $availableModules;
+
+        if ($modules->isEmpty()) {
+            $this->warn('permissions 表中没有可导出的模块菜单。');
+
+            return self::SUCCESS;
+        }
+
+        $exported = [];
+        $skipped = [];
+
+        foreach ($modules as $module) {
+            if (! MModule::isModulePathExist($module)) {
+                $this->warn("[{$module}] 模块目录不存在，已跳过。");
+                $skipped[] = [$module, '模块目录不存在'];
+
+                continue;
+            }
+
+            $menus = $this->menusFor($module);
+            if ($menus->isEmpty()) {
+                $this->warn("[{$module}] 没有菜单数据，已跳过。");
+                $skipped[] = [$module, '没有菜单数据'];
+
+                continue;
+            }
+
+            $path = $this->exportSeed($module, $this->normalizeValue($menus));
+            $exported[] = [$module, $menus->count(), MModule::getModuleRelativePath($path)];
+            $this->info("[{$module}] 已导出 {$menus->count()} 个根菜单到 {$path}");
+        }
+
+        if ($exported !== []) {
+            $this->newLine();
+            $this->table(['模块', '根菜单数', 'Seeder'], $exported);
+        }
+
+        $this->newLine();
+        $this->info(sprintf('导出完成：成功 %d 个模块，跳过 %d 个模块。', count($exported), count($skipped)));
+
+        return self::SUCCESS;
     }
 
     /**
-     * 命令执行入口
-     *
-     * @return void
+     * 获取单个模块菜单。跨模块父节点不会写入当前 Seeder，子菜单会提升为根节点。
      */
-    public function handle(): void
+    protected function menusFor(string $module): Collection
     {
-        // 获取所有模块信息
-        $modules = MModule::getAllModules();
+        $menus = $this->createModel()
+            ->newQuery()
+            ->where('module', $module)
+            ->orderBy('id')
+            ->get();
 
-        try {
-            // 让用户选择要导出的模块
-            $selectedModulesTitle = $this->choice(
-                '选择导出菜单的模块',
-                $modules->pluck('title')->toArray(),
-                attempts: 1,
-                multiple: true
-            );
-        } catch (\Exception $e) {
-            $this->error('未选择任何模块');
-            exit;
-        }
+        $ids = $menus->pluck('id')->map(fn ($id) => (int) $id)->all();
 
-        // 过滤出选择的模块名称
-        $module = [];
-        $modules->each(function ($item) use ($selectedModulesTitle, &$module) {
-            if (in_array($item['title'], $selectedModulesTitle)) {
-                $module[] = $item['name'];
+        $menus->each(function (XditnModel $menu) use ($ids): void {
+            if ((int) $menu->parent_id !== 0 && ! in_array((int) $menu->parent_id, $ids, true)) {
+                $menu->setAttribute('parent_id', 0);
             }
         });
 
-        // 创建模型实例并获取菜单数据
-        $model = $this->createModel();
-        $data = $model->whereIn('module', $module)->get()->toTree();
-
-        // 将数据转换为 PHP 数组格式
-        $data = 'return '.var_export(json_decode($data, true), true).';';
-
-        // 导出为 Seeder 文件
-        $this->exportSeed($data, $module);
-
-        $this->info('模块菜单导出成功');
+        return $menus->toTree();
     }
 
-    /**
-     * 导出 Seeder 文件
-     *
-     * @param  string  $data   菜单数据
-     * @param  array  $module 模块名称
-     * @return void
-     */
-    protected function exportSeed(string $data, array $module): void
+    protected function normalizeValue(mixed $value): mixed
     {
-        $module = $module[0]; // 获取第一个模块名称
+        if ($value instanceof BackedEnum) {
+            return $value->value;
+        }
 
-        // 获取 Seeder 模板文件内容
-        $stub = File::get(__DIR__.DIRECTORY_SEPARATOR.'stubs'.DIRECTORY_SEPARATOR.'menuSeeder.stub');
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('Y-m-d H:i:s');
+        }
 
-        // 生成 Seeder 类名
-        $class = ucfirst($module).'MenusSeeder';
+        if ($value instanceof Arrayable) {
+            $value = $value->toArray();
+        }
 
-        // 替换模板中的占位符为实际内容
-        $stub = str_replace('{CLASS}', $class, $stub);
-        $stub = str_replace('{menus}', $data, $stub);
+        if ($value instanceof Collection) {
+            $value = $value->all();
+        }
 
-        // 写入 Seeder 文件
-        File::put(MModule::getModuleSeederPath($module).$class.'.php', $stub);
+        if (is_array($value)) {
+            return array_map(fn (mixed $item) => $this->normalizeValue($item), $value);
+        }
+
+        return $value;
     }
 
-    /**
-     * 创建模型实例
-     *
-     * @return XditnModel
-     */
+    protected function exportSeed(string $module, array $menus): string
+    {
+        $stub = File::get(__DIR__.DIRECTORY_SEPARATOR.'stubs'.DIRECTORY_SEPARATOR.'menuSeeder.stub');
+        $class = Str::studly($module).'MenusSeeder';
+        $data = 'return '.var_export($menus, true).';';
+
+        $stub = str_replace(['{CLASS}', '{menus}'], [$class, $data], $stub);
+
+        $path = MModule::getModuleSeederPath($module).$class.'.php';
+        File::put($path, $stub);
+
+        return $path;
+    }
+
     protected function createModel(): XditnModel
     {
-        // 使用匿名类创建模型实例
-        return new class() extends XditnModel
+        return new class extends XditnModel
         {
-            protected $table = 'permissions'; // 指定数据库表名
+            protected $table = 'permissions';
         };
     }
 }

@@ -1,20 +1,13 @@
 <?php
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Modules\Common\Support\ImportPermissions;
 
 return new class extends Seeder
 {
-    /**
-     * Run the seeder.
-     *
-     * @return void
-     */
     public function run(): void
     {
-        $menus = $this->menus();
-
-        importTreeData($menus, 'permissions');
+        ImportPermissions::import($this->menus());
     }
 
     public function menus(): array
