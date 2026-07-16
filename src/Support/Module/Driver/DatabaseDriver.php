@@ -105,7 +105,9 @@ class DatabaseDriver implements ModuleRepositoryInterface
     public function disOrEnable(string $name): bool|int
     {
         $module = $this->show($name);
-        $module->enable = (int) ! $module->enable;
+        $module->status = Status::Enable->assert($module->status)
+            ? Status::Disable->value()
+            : Status::Enable->value();
 
         return $module->save();
     }
@@ -117,7 +119,7 @@ class DatabaseDriver implements ModuleRepositoryInterface
      */
     public function getEnabled(): Collection
     {
-        return $this->model->where('enable', Status::Enable->value())->get();
+        return $this->model->where('status', Status::Enable->value())->get();
     }
 
     /**

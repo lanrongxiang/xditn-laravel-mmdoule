@@ -8,7 +8,7 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Routing\ResourceRegistrar;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Route;
 use ReflectionException;
 use Xditn\Contracts\ModuleRepositoryInterface;
@@ -189,19 +189,52 @@ class XditnServiceProvider extends ServiceProvider
      */
     protected function bootModuleProviders(): void
     {
-        // 如果配置了模块自动加载，则不需要从本地配置中加载
-        if (config('xditn.module.autoload')) {
-            $modules = $this->app->make(ModuleRepositoryInterface::class)->all();
-            foreach ($modules as $module) {
-                if (class_exists($module['provider'])) {
-                    $this->app->register($module['provider']);
-                }
-            }
-
-            // 注册模块路由
-            $this->registerModuleRoutes();
+        if (! config('xditn.module.autoload') || $this->shouldSkipModuleAutoload()) {
+            return;
         }
 
+        try {
+            $modules = $this->app->make(ModuleRepositoryInterface::class)->all();
+        } catch (QueryException $e) {
+            if ($this->app->runningInConsole()) {
+                return;
+            }
+
+            throw $e;
+        }
+
+        foreach ($modules as $module) {
+            $moduleName = data_get($module, 'name');
+            $provider = data_get($module, 'provider') ?: ($moduleName ? MModule::getModuleServiceProvider($moduleName) : null);
+
+            if ($provider && class_exists($provider)) {
+                $this->app->register($provider);
+            }
+        }
+
+        // 注册模块路由
+        $this->registerModuleRoutes();
+    }
+
+    /**
+     * 在无需加载模块的维护命令中跳过数据库模块自动加载。
+     */
+    protected function shouldSkipModuleAutoload(): bool
+    {
+        if (! $this->app->runningInConsole()) {
+            return false;
+        }
+
+        $command = $_SERVER['argv'][1] ?? null;
+
+        return in_array($command, [
+            'package:discover',
+            'config:cache',
+            'route:cache',
+            'view:cache',
+            'event:cache',
+            'optimize',
+        ], true);
     }
 
     /**
